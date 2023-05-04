@@ -80,6 +80,7 @@ borda_method <- function(situation) {
   }
   # Calculer le total de chaque ligne
   totaux <- rowSums(situation)
+  print(totaux)
   # Retourner tous les indices des lignes ayant un total maximal
   winner <- which(totaux == max(totaux))
   return(winner)
