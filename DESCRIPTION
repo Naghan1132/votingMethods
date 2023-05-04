@@ -1,12 +1,13 @@
 Package: votingMethods
 Type: Package
-Title: Voting Methods for a simulation
+Title: Voting Methods for simulation
 Version: 0.1.0
 Author: Nathan GRIMAULT 
-Maintainer: <nathan.grimault@univ-lyon2.fr>
-Description: balblab.
+Maintainer: Nathan GRIMAULT <nathan.grimault@univ-lyon2.fr>
+Description: R package to test different voting methods on a given simulation (package 'voteSim').
 License: GPL-3
 Encoding: UTF-8
+URL : https://github.com/Naghan1132/votingMethods
 LazyData: true
 Suggests: 
     testthat (>= 3.0.0)
