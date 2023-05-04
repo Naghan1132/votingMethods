@@ -20,6 +20,7 @@
 
 #' Uninominal vote
 #' @export
+#' @param situation voters preferences
 #' @returns winner_idx
 uninominal_vote <- function(situation) {
   #situation <- matrix(runif(30, min = 0, max = 1), nrow = 3, ncol = 10)
@@ -50,21 +51,21 @@ uninominal_vote <- function(situation) {
 
 #' Approbal vote
 #' @export
+#' @param situation voters preferences
 #' @returns winner
 approbal_vote <- function(situation) {
   # !!! Gérer les EGALITÉS ?!
   # Calcule le nombre d'approbations pour chaque candidat
-  approbations <- apply(prefs, 1, function(x) sum(x > 0.5)) # TEST : à changer peut-être
+  approbations <- apply(situation, 1, function(x) sum(x > 0.5)) # TEST : à changer peut-être
   # Retourne les candidats ayant obtenu le plus grand nombre d'approbations
   winner <- which(approbations == max(approbations))
   return(winner)
 }
 
 #' Borda method
-#' @param situation votes preferences
+#' @param situation voters preferences
 #' @returns winner
 #' @export
-
 borda_method <- function(situation) {
   n_candidats <- nrow(situation)
   n_voters <- ncol(situation)

@@ -6,6 +6,9 @@
 \usage{
 uninominal_vote(situation)
 }
+\arguments{
+\item{situation}{voters preferences}
+}
 \value{
 winner_idx
 }

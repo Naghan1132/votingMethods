@@ -7,7 +7,7 @@
 borda_method(situation)
 }
 \arguments{
-\item{situation}{votes preferences}
+\item{situation}{voters preferences}
 }
 \value{
 winner
