@@ -4,7 +4,7 @@
 \alias{approbal_vote}
 \title{Approbal vote}
 \usage{
-approbal_vote()
+approbal_vote(situation)
 }
 \value{
 winner

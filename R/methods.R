@@ -52,10 +52,38 @@ uninominal_vote <- function(situation) {
 #' @export
 #' @returns winner
 approbal_vote <- function(situation) {
-  # !!! Gérer les EGALITÉS !!!
+  # !!! Gérer les EGALITÉS ?!
   # Calcule le nombre d'approbations pour chaque candidat
   approbations <- apply(prefs, 1, function(x) sum(x > 0.5)) # TEST : à changer peut-être
   # Retourne les candidats ayant obtenu le plus grand nombre d'approbations
   winner <- which(approbations == max(approbations))
   return(winner)
 }
+
+#' Borda method
+#' @param situation votes preferences
+#' @returns winner
+#' @export
+
+borda_method <- function(situation) {
+  n_candidats <- nrow(situation)
+  n_voters <- ncol(situation)
+  # Remplacer les valeurs de chaque colonne selon la méthode de Borda
+  for (i in 1:n_voters) {
+    vec_col <- situation[,i]
+    vec_col_ordonne <- sort(vec_col, decreasing = TRUE)
+    for (j in 1:n_candidats) {
+      vec_col[vec_col == vec_col_ordonne[j]] <- n_candidats - j + 1
+    }
+    situation[,i] <- vec_col
+  }
+  # Calculer le total de chaque ligne
+  totaux <- rowSums(situation)
+  # Retourner tous les indices des lignes ayant un total maximal
+  winner <- which(totaux == max(totaux))
+  return(winner)
+}
+
+
+
+
