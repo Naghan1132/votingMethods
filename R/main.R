@@ -32,21 +32,32 @@
 #' @export
 #' @returns winner_idx
 uninominal_vote <- function() {
-  pref_matrix <- matrix(runif(250, min = 0, max = 1), nrow = 5, ncol = 50)
+  pref_matrix <- matrix(runif(30, min = 0, max = 1), nrow = 3, ncol = 10)
+  # Calculer le nombre de candidats et de votants
+  n_candidates <- nrow(pref_matrix)
+  n_voters <- ncol(pref_matrix)
+
   View(pref_matrix)
 
-  nb_candidates <- nrow(pref_matrix)
-  nb_voters <- ncol(pref_matrix)
+  # Initialiser le vecteur de voix pour chaque candidat
+  vote_counts <- rep(0, n_candidates)
 
-  # Calculer le nombre de voix pour chaque candidat
-  votes_count <- sapply(1:nb_candidates, function(cand_idx) {
-    sum(pref_matrix[cand_idx,] == max(pref_matrix[,cand_idx]))
-  })
+  # Pour chaque votant, trouver le candidat préféré et ajouter une voix pour ce candidat
+  for (i in 1:n_voters) {
+    # Trouver l'indice du candidat préféré du votant i sur la colonne i
+    fav_candidate <- which.max(pref_matrix[, i])
+    print("candidat fav :",fav_candidate)
+    print(pref_matrix[, i])
+    print(which.max(pref_matrix[, i]))
 
-  # Trouver l'index du candidat avec le plus grand nombre de voix
-  winner_idx <- which(votes_count == max(votes_count))
+    # Ajouter une voix pour le candidat préféré du votant i
+    vote_counts[fav_candidate] <- vote_counts[fav_candidate] + 1
+  }
+  View(vote_counts)
 
-  # Retourner le(s) gagnant(s) sous forme de vecteur d'index
-  cat("Le(s) gagnant(s) est/sont le(s) candidat(s) numéro :", winner_idx, "\n")
+  # Trouver le candidat avec le plus de voix
+  winner_idx <- which.max(vote_counts)
+
+  # Retourner l'indice du candidat gagnant
   return(winner_idx)
 }
