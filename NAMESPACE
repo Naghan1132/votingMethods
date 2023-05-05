@@ -2,4 +2,6 @@
 
 export(approbal_vote)
 export(borda_method)
+export(preferences_to_ranks)
 export(uninominal_vote)
+export(vote_elimination)

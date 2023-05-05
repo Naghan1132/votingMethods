@@ -86,3 +86,55 @@ borda_method <- function(situation) {
   winner <- which(totaux == max(totaux))
   return(winner)
 }
+
+# vote par Élimination successive
+#' Succesif elimination
+#' @export
+#' @param situation voters preferences
+#' @returns remaining
+vote_elimination <- function(situation) {
+n_candidates <- nrow(situation)
+n_voters <- ncol(situation)
+eliminated <- c() # Vecteur des candidats éliminés
+remaining <- 1:n_candidates # Vecteur des candidats restants
+
+# Boucle jusqu'à ce qu'il ne reste qu'un candidat ou une égalité
+while (length(remaining) > 1) {
+  # Calculer le nombre de voix pour chaque candidat restant
+  vote_counts <- rep(0, n_candidates)
+  for (i in remaining) {
+    vote_counts[i] <- sum(situation[i, ])
+  }
+  print(vote_counts)
+
+  # Trouver le candidat avec le moins de voix
+  loser_idx <- which.min(vote_counts[remaining])
+  print("indice perdant : ",loser_idx)
+
+  # Ajouter le candidat éliminé à la liste
+  eliminated <- c(eliminated, remaining[loser_idx])
+
+  # Retirer le candidat éliminé de la liste des candidats restants
+  remaining <- remaining[-loser_idx]
+  print("restants  :",remaining)
+
+  # Répartir les voix des partisans du candidat éliminé
+  for (j in 1:n_voters) {
+    # Trouver le candidat préféré du votant j parmi les candidats restants
+    fav_candidate <- which.max(situation[remaining, j])
+
+    # Ajouter une voix pour le candidat préféré du votant j
+    vote_counts[fav_candidate] <- vote_counts[fav_candidate] + 1
+  }
+
+  # Vérifier s'il y a une égalité entre les deux candidats restants
+  if (length(remaining) == 2 && vote_counts[remaining[1]] == vote_counts[remaining[2]]) {
+    return(remaining) # Les deux candidats sont à égalité
+  }
+}
+
+# Il ne reste qu'un candidat, retourner son indice
+return(remaining)
+}
+
+
