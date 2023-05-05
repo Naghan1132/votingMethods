@@ -1,30 +1,17 @@
-# library(voteSim)
-# situation <- generate_beta(100,5)
-# scrutin <- function(nVoter,nCandidat,situation) {
-#
-#     le paramètre "situation" est le résultat d'une fonction du package "voteSim"
-#     pas besoin de nVoter et nCandidat, juste à récupérer le nombre de ligne/col
-#     dans le tableau situation (si elle retourne bien un tableau)
-#
-# }
-
-
 # USE :
 #   library(devtools)
 #   install_github("Naghan1132/voteSim")
 #   library(voteSim)
 #   uninominal_vote(generate_beta(10,3))
 
-
-
+# ==== ==== ==== ==== ==== ==== ==== ==== ==== ====
 
 #' Uninominal vote
 #' @export
 #' @param situation voters preferences
+#' @param n_round int
 #' @returns winner_idx
-uninominal_vote <- function(situation) {
-  #situation <- matrix(runif(30, min = 0, max = 1), nrow = 3, ncol = 10)
-
+uninominal_vote <- function(situation, n_round = 1) {
   # Calculer le nombre de candidats et de votants
   n_candidates <- nrow(situation)
   n_voters <- ncol(situation)
@@ -41,11 +28,26 @@ uninominal_vote <- function(situation) {
     vote_counts[fav_candidate] <- vote_counts[fav_candidate] + 1
   }
 
-  # Trouver le candidat avec le plus de voix
-  winner_idx <- which.max(vote_counts)
-
-  # Retourner l'indice du candidat gagnant
-  return(winner_idx)
+  if(n_round == 1) {
+    # Vote uninominal à un tour : trouver le candidat avec le plus de voix et retourner son indice
+    winner_idx <- which(vote_counts == max(vote_counts)) # pour gérer les égalités
+    return(winner_idx)
+  } else if(n_round == 2) {
+    # Vote uninominal à deux tours
+    winner_idx <- which.max(vote_counts)
+    if(vote_counts[winner_idx] / n_voters < 0.5) {
+      # Si aucun candidat n'a la majorité absolue,on passe au second tour
+      top2_indices <- order(vote_counts, decreasing = TRUE)[1:2]
+      situation2 <- situation[top2_indices,]
+      winner_idx2 <- uninominal_vote(situation2, n_round = 1)
+      return(winner_idx2)
+    } else {
+      # Sinon, le premier candidat est élu
+      return(winner_idx)
+    }
+  } else {
+    stop("Number of rounds must be between 1 or 2")
+    }
 }
 
 
@@ -54,7 +56,6 @@ uninominal_vote <- function(situation) {
 #' @param situation voters preferences
 #' @returns winner
 approbal_vote <- function(situation) {
-  # !!! Gérer les EGALITÉS ?!
   # Calcule le nombre d'approbations pour chaque candidat
   approbations <- apply(situation, 1, function(x) sum(x > 0.5)) # TEST : à changer peut-être
   # Retourne les candidats ayant obtenu le plus grand nombre d'approbations
@@ -85,7 +86,3 @@ borda_method <- function(situation) {
   winner <- which(totaux == max(totaux))
   return(winner)
 }
-
-
-
-
