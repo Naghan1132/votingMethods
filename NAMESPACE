@@ -2,6 +2,10 @@
 
 export(approbal_vote)
 export(borda_method)
+export(condorcet)
+export(condorcet_test)
+export(condorcet_vote)
+export(preferences_to_points)
 export(preferences_to_ranks)
 export(uninominal_vote)
 export(vote_elimination)

@@ -56,9 +56,9 @@ uninominal_vote <- function(situation, n_round = 1) {
 #' @param situation voters preferences
 #' @returns winner
 approbal_vote <- function(situation) {
-  # Calcule le nombre d'approbations pour chaque candidat
-  approbations <- apply(situation, 1, function(x) sum(x > 0.5)) # TEST : à changer peut-être
-  # Retourne les candidats ayant obtenu le plus grand nombre d'approbations
+  # Calcule le nombre d'approbations pour chaque candidat (ligne)
+  approbations <- apply(situation, 1, function(x) sum(x > 0.5)) # 0.5 : à changer peut-être
+  # Retourne le(s) candidat(s) ayant obtenu le plus grand nombre d'approbations
   winner <- which(approbations == max(approbations))
   return(winner)
 }
@@ -136,5 +136,42 @@ while (length(remaining) > 1) {
 # Il ne reste qu'un candidat, retourner son indice
 return(remaining)
 }
+
+#' Condorcet
+#' @export
+#' @param preference_matrix voters preferences
+#' @return winner, can be NULL
+condorcet <- function(preference_matrix) {
+  n <- nrow(preference_matrix) # nombre de candidats
+  preference_matrix <- preferences_to_ranks(preference_matrix)
+  wins <- rep(0, n) # initialise le vecteur de victoires
+
+  # Pour chaque paire de candidats, compte le nombre de victoires en tête-à-tête
+  for (i in 1:(n-1)) {
+    for (j in (i+1):n) {
+      count <- sum(preference_matrix[i,] > preference_matrix[j,])
+      if (count > n/2) {
+        wins[i] <- wins[i] + 1
+      } else if (count < n/2) {
+        wins[j] <- wins[j] + 1
+      }
+    }
+  }
+
+  # Trouve le candidat avec le plus de victoires
+  max_wins <- max(wins)
+  if (max_wins == 0) {
+    # Il n'y a pas de vainqueur de Condorcet
+    return(NULL)
+  } else if (sum(wins == max_wins) > 1) {
+    # Il y a une égalité de vainqueurs de Condorcet
+    return(NULL)
+  } else {
+    # winner
+    return(which.max(wins))
+  }
+}
+
+
 
 
