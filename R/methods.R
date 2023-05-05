@@ -150,6 +150,7 @@ condorcet <- function(preference_matrix) {
   for (i in 1:(n-1)) {
     for (j in (i+1):n) {
       count <- sum(preference_matrix[i,] > preference_matrix[j,])
+      # test de la majorité
       if (count > n/2) {
         wins[i] <- wins[i] + 1
       } else if (count < n/2) {
