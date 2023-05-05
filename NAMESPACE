@@ -3,6 +3,8 @@
 export(approbal_vote)
 export(borda_method)
 export(condorcet)
+export(copeland)
+export(minimax)
 export(preferences_to_points)
 export(preferences_to_ranks)
 export(uninominal_vote)

@@ -166,5 +166,62 @@ condorcet <- function(preference_matrix) {
 }
 
 
+#' Copeland procedure
+#' @export
+#' @param preference_matrix voters preferences
+#' @return winner, can be NULL
+copeland <- function(preference_matrix) {
+  n <- nrow(preference_matrix)
+  preference_matrix <- preferences_to_ranks(preference_matrix)
+  scores <- rep(0, n)
+  for (i in 1:(n - 1)) {
+    for (j in (i + 1):n) {
+      wins_i <- sum(preference_matrix[i,] < preference_matrix[j,])
+      wins_j <- sum(preference_matrix[i,] > preference_matrix[j,])
+      if (wins_i == wins_j) {
+        scores[i] <- scores[i] + 0.5
+        scores[j] <- scores[j] + 0.5
+      } else if (wins_i > wins_j) {
+        scores[i] <- scores[i] + 1
+      } else {
+        scores[j] <- scores[j] + 1
+      }
+    }
+  }
+
+  winners <- which(scores == max(scores))
+  if (length(winners) == 1) {
+    return(winners)
+  } else {
+    return(NULL)
+  }
+}
+
+
+#' Minimax procedure
+#' @export
+#' @param preference_matrix voters preferences
+#' @return winner, can be NULL
+minimax <- function(preference_matrix) {
+  n <- nrow(preference_matrix)
+  preference_matrix <- preferences_to_ranks(preference_matrix)
+  # Calcule les distances entre chaque paire de candidats - matrice de duels
+  distances <- matrix(0, n, n)
+  View(preference_matrix)
+  for (i in 1:n) {
+    for (j in 1:n) {
+      if (i != j) {
+        distances[i,j] <- sum(preference_matrix[i,] < preference_matrix[j,])
+      }
+    }
+  }
+  # Calcule le risque maximum pour chaque candidat
+  risks <- apply(distances, 1, max)
+  View(distances)
+  # Trouve le candidat avec le risque maximum le plus faible
+  winner <- which.min(risks)
+  # Renvoie le candidat élu
+  return(winner)
+}
 
 
