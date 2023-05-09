@@ -4,6 +4,22 @@
 #   library(voteSim)
 #   uninominal_vote(generate_beta(10,3))
 
+
+# Uninomial OK
+# Approbation OK
+# Borda OK
+# Elination succéssive KO
+# Condorcet KO
+# Copeland OK
+# Minimax OK
+
+
+# Matrice de préférences
+#preferences <- matrix(c(1, 3, 1, 2, 1, 3, 2, 2, 3, 1, 3, 2, 3, 1, 2, 2, 3, 2, 1, 1), nrow = 3, ncol = 5, byrow = TRUE)
+#rownames(preferences) <- c("Candidat 1", "Candidat 2", "Candidat 3")
+#colnames(preferences) <- paste0("V", 1:ncol(preferences))
+
+
 # ==== ==== ==== ==== ==== ==== ==== ==== ==== ====
 
 #' Uninominal vote
@@ -11,7 +27,7 @@
 #' @param situation voters preferences
 #' @param n_round int
 #' @returns winner_idx
-uninominal_vote <- function(situation, n_round = 1) {
+uninominal <- function(situation, n_round = 1) {
   # Calculer le nombre de candidats et de votants
   n_candidates <- nrow(situation)
   n_voters <- ncol(situation)
@@ -46,7 +62,7 @@ uninominal_vote <- function(situation, n_round = 1) {
       return(winner_idx)
     }
   } else {
-    stop("Number of rounds must be between 1 or 2")
+    stop("Number of rounds must be 1 or 2")
     }
 }
 
@@ -55,7 +71,7 @@ uninominal_vote <- function(situation, n_round = 1) {
 #' @export
 #' @param situation voters preferences
 #' @returns winner
-approbal_vote <- function(situation) {
+approbal <- function(situation) {
   # Calcule le nombre d'approbations pour chaque candidat (ligne)
   approbations <- apply(situation, 1, function(x) sum(x > 0.5)) # 0.5 : à changer peut-être
   # Retourne le(s) candidat(s) ayant obtenu le plus grand nombre d'approbations
@@ -67,7 +83,7 @@ approbal_vote <- function(situation) {
 #' @param situation voters preferences
 #' @returns winner
 #' @export
-borda_method <- function(situation) {
+borda <- function(situation) {
   n_candidats <- nrow(situation)
   n_voters <- ncol(situation)
   situation <- preferences_to_points(situation)
@@ -132,25 +148,26 @@ return(remaining)
 #' Condorcet
 #' @export
 #' @param preference_matrix voters preferences
-#' @return winner, can be NULL
 condorcet <- function(preference_matrix) {
   n <- nrow(preference_matrix) # nombre de candidats
   preference_matrix <- preferences_to_ranks(preference_matrix)
   wins <- rep(0, n) # initialise le vecteur de victoires
-
+  View(preference_matrix)
   # Pour chaque paire de candidats, compte le nombre de victoires en tête-à-tête
-  for (i in 1:(n-1)) {
-    for (j in (i+1):n) {
-      count <- sum(preference_matrix[i,] > preference_matrix[j,])
+  for (i in 1:(n)) {
+    for (j in 1:(n)){
+      if(i!=j){
+      countWin <- sum(preference_matrix[i,] < preference_matrix[j,])
       # test de la majorité
-      if (count > n/2) {
+      if (countWin > n/2) {
         wins[i] <- wins[i] + 1
-      } else if (count < n/2) {
+      } else if (countWin < n/2) {
         wins[j] <- wins[j] + 1
       }
     }
+   }
   }
-
+  View(wins)
   # Trouve le candidat avec le plus de victoires
   max_wins <- max(wins)
   if (max_wins == 0) {
@@ -163,6 +180,43 @@ condorcet <- function(preference_matrix) {
     # winner
     return(which.max(wins))
   }
+}
+
+
+#' CondorcetV2
+#' @export
+#' @param preference_matrix voters preferences
+#' @return winner, can be NULL
+condorcetV2 <- function(preference_matrix) {
+  n <- nrow(preference_matrix)
+  preference_matrix <- preferences_to_ranks(preference_matrix)
+  View(preference_matrix)
+  # Calcule la matrice des duels
+  duel_matrix <- matrix(0, n, n)
+  for (i in 1:n) {
+    for (j in 1:n) {
+      if (i != j) {
+        count <- sum(preference_matrix[i,] < preference_matrix[j,])
+        if (count > n/2) {
+          duel_matrix[i,j] <- duel_matrix[i, j] + 1
+        } else if (count < n/2) {
+          duel_matrix[j, i] <- duel_matrix[j, i] + 1
+        }
+      }
+    }
+  }
+  View(duel_matrix)
+  # Vérifie s'il y a un vainqueur de Condorcet
+  row_sums <- rowSums(duel_matrix)
+  col_sums <- colSums(duel_matrix)
+  condorcet_winner <- NULL
+  if (any(row_sums == n-1)) {
+    condorcet_winner <- which.max(row_sums)
+  } else if (any(col_sums == n-1)) {
+    condorcet_winner <- which.max(col_sums)
+  }
+  # Renvoie le vainqueur de Condorcet ou NULL s'il n'y en a pas
+  return(condorcet_winner)
 }
 
 
