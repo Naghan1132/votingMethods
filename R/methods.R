@@ -5,14 +5,19 @@
 #   uninominal_vote(generate_beta(10,3))
 
 
-# Uninomial OK
-# Approbation OK
-# Borda OK
+# Uninomial 1T OK
+# Uninomial 2T OK
 # Elination successive OK
-# Condorcet KO
-# Copeland OK
-# Minimax OK
 # Bucklin OK
+# Borda OK
+# Nanson ?
+# Minimax OK (à vérifier)
+# Copeland OK (à vérifier)
+# Kemeny ?
+
+
+# Approbation OK
+# Condorcet KO
 
 
 # Matrice de préférences
@@ -313,6 +318,44 @@ bucklin <- function(pref_matrix) {
     }
     n_round <- n_round +1
   }
-
   return(winner)
 }
+
+#' Nanson method
+#' @export
+#' @param pref_matrix voters preferences
+#' @returns winner
+nanson <- function(pref_matrix) {
+  n_candidats <- nrow(pref_matrix)
+  n_voters <- ncol(pref_matrix)
+  pref_matrix <- preferences_to_points(pref_matrix)
+  eliminated_candidates <- 1:n_candidats
+  winner <- FALSE
+  #candidate_votes <- rep(0, n_candidats)
+
+  # faire borda puis élimination succ => reallocate
+  while(!winner){
+    # Calculer le total de chaque ligne
+    candidate_votes <- rowSums(pref_matrix)
+    print(candidate_votes)
+    mean <- sum(candidate_votes/n_candidats)
+    print("moyenne")
+    print(mean)
+    for (i in 1:n_candidats) {
+      if(candidate_votes[i] < mean & !(i %in% eliminated_candidates) ){
+        candidate_votes[i] <- 0
+      }
+    }
+    print(candidate_votes)
+
+    # =====
+    # Retourner tous les indices des lignes ayant un total maximal
+    winner <- which(candidate_votes == max(candidate_votes))
+    return(winner)
+  }
+}
+
+
+
+
+
