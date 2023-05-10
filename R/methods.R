@@ -12,6 +12,7 @@
 # Condorcet KO
 # Copeland OK
 # Minimax OK
+# Bucklin OK
 
 
 # Matrice de préférences
@@ -303,9 +304,10 @@ bucklin <- function(pref_matrix) {
         return(winner)
       } else {
         # Sinon, trouver le candidat avec la plus grande majorité
-        max_votes <- max(candidate_votes[majority_candidates])
-        max_candidates <- majority_candidates[candidate_votes[majority_candidates] == max_votes]
-        winner <- max_candidates[1]
+        max_vote <- max(candidate_votes[majority_candidates])
+        max_candidates <- which(candidate_votes == max_vote)
+        # peut y avoir égalité parfaite
+        winner <- max_candidates
         return(winner)
       }
     }
