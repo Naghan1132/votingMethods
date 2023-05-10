@@ -8,7 +8,7 @@
 # Uninomial OK
 # Approbation OK
 # Borda OK
-# Elination succéssive KO
+# Elination successive KO
 # Condorcet KO
 # Copeland OK
 # Minimax OK
@@ -95,7 +95,6 @@ borda <- function(situation) {
   return(winner)
 }
 
-# vote par Élimination successive
 #' Succesif elimination
 #' @export
 #' @param situation voters preferences
@@ -144,6 +143,9 @@ while (length(remaining) > 1) {
 # Il ne reste qu'un candidat, retourner son indice
 return(remaining)
 }
+
+
+
 
 #' Condorcet
 #' @export
@@ -277,5 +279,44 @@ minimax <- function(preference_matrix) {
   # Renvoie le candidat élu
   return(winner)
 }
+
+
+#' Succesif elimination test
+#' @export
+#' @param pref_matrix voters preferences
+#' @returns remaining_candidates
+find_winner <- function(pref_matrix) {
+  pref_matrix <- preferences_to_ranks(pref_matrix) # ok
+  num_candidates <- nrow(pref_matrix) # ok
+  remaining_candidates <- 1:num_candidates # ok
+  View(pref_matrix)
+  while (length(remaining_candidates) > 1) {
+    # Calculer le total de voix pour chaque candidat restant
+    candidate_votes <- rep(0, num_candidates)
+    for (i in remaining_candidates) {
+      candidate_votes[i] <- sum(pref_matrix[i,] == 1) # on choisit le candidat pref de chaque votant
+    }
+    egalite <- unique(candidate_votes[remaining_candidates])
+    # Vérifier si la liste d'entiers contient une seule valeur unique
+    longueurUnique <- length(egalite)
+    if(longueurUnique == 1){
+      #print("ÉGALITÉ")
+      print(candidate_votes)
+      return(remaining_candidates)
+    }
+    # Éliminer le candidat ayant le moins de voix
+    min_votes <- min(candidate_votes[remaining_candidates]) # min(candidate_votes) ???
+    eliminated_candidates <- which(candidate_votes == min_votes)
+    if(length(eliminated_candidates) > 1){
+      eliminated_candidates <- sample(length(eliminated_candidates),1)
+    }
+    remaining_candidates <- setdiff(remaining_candidates, eliminated_candidates)
+
+    # Redistribuer les préférences des votants pour prendre en compte l'élimination du candidat
+    pref_matrix <- reallocate_preferences(pref_matrix,eliminated_candidates)
+  }
+  return(remaining_candidates)
+}
+
 
 
