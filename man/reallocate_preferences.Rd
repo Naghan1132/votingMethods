@@ -12,7 +12,7 @@ reallocate_preferences(pref_matrix, eliminated_candidate)
 \item{eliminated_candidate}{eliminated index}
 }
 \value{
-mat
+reallocated_prefs
 }
 \description{
 reallocate_preferences

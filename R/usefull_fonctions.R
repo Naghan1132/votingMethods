@@ -38,7 +38,7 @@ reallocate_preferences <- function(pref_matrix, eliminated_candidate) {
     shifted_ranks[eliminated_candidate] <- 0
     reallocated_prefs[,i] <- shifted_ranks
   }
-  print(reallocated_prefs)
+  #print(reallocated_prefs)
   return(reallocated_prefs)
 }
 
