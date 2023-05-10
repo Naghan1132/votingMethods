@@ -235,9 +235,9 @@ minimax <- function(preference_matrix) {
 #' @param pref_matrix voters preferences
 #' @returns remaining_candidates
 successif_elimination <- function(pref_matrix) {
-  pref_matrix <- preferences_to_ranks(pref_matrix) # ok
-  num_candidates <- nrow(pref_matrix) # ok
-  remaining_candidates <- 1:num_candidates # ok
+  pref_matrix <- preferences_to_ranks(pref_matrix)
+  num_candidates <- nrow(pref_matrix)
+  remaining_candidates <- 1:num_candidates
   View(pref_matrix)
   while (length(remaining_candidates) > 1) {
     # Calculer le total de voix pour chaque candidat restant
@@ -265,6 +265,52 @@ successif_elimination <- function(pref_matrix) {
   return(remaining_candidates)
 }
 
+#' Bulkin method
+#' @export
+#' @param pref_matrix voters preferences
+#' @returns winner
+bucklin <- function(pref_matrix) {
+  pref_matrix <- preferences_to_ranks(pref_matrix)
+  num_voters <- ncol(pref_matrix)
+  num_candidates <- nrow(pref_matrix)
+  candidate_votes <- rep(0, num_candidates)
+  View(pref_matrix)
+  winner <- FALSE
+  n_round <- 1
+  majority_threshold <- ceiling(num_voters / 2)
+  print("Majorité : ")
+  print(majority_threshold)
 
+  while(!winner) {
+    print("Round : ")
+    print(n_round)
+    # Compter le nombre de votes pour chaque candidat
+    for (i in 1:num_candidates) {
+      candidate_votes[i] <- candidate_votes[i] + sum(pref_matrix[i,] == n_round)
+    }
+    print("votes : ")
+    print(candidate_votes)
 
+    # Trouver les candidats ayant obtenu une majorité
+    majority_candidates <- which(candidate_votes > majority_threshold)
+    print("candidats majoritaires :")
+    print(majority_candidates)
 
+    if (length(majority_candidates) > 0) {
+      # S'il y a un seul candidat avec une majorité, il est élu
+      if (length(majority_candidates) == 1) {
+        winner <- majority_candidates
+        return(winner)
+      } else {
+        # Sinon, trouver le candidat avec la plus grande majorité
+        max_votes <- max(candidate_votes[majority_candidates])
+        max_candidates <- majority_candidates[candidate_votes[majority_candidates] == max_votes]
+        winner <- max_candidates[1]
+        return(winner)
+      }
+    }
+    n_round <- n_round +1
+  }
+
+  return(winner)
+}

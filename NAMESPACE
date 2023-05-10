@@ -2,6 +2,7 @@
 
 export(approbal)
 export(borda)
+export(bucklin)
 export(condorcet)
 export(condorcetV2)
 export(copeland)
