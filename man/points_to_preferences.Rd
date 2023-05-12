@@ -2,9 +2,9 @@
 % Please edit documentation in R/usefull_fonctions.R
 \name{points_to_preferences}
 \alias{points_to_preferences}
-\title{points_to_pref}
+\title{points_to_preferences}
 \usage{
-points_to_preferences(points_matrix)
+points_to_preferences(points_matrix, eliminated_candidates)
 }
 \arguments{
 \item{points_matrix}{voters preferences}
@@ -13,5 +13,5 @@ points_to_preferences(points_matrix)
 preferences_matrix
 }
 \description{
-points_to_pref
+points_to_preferences
 }

@@ -5,23 +5,21 @@
 #   uninominal_vote(generate_beta(10,3))
 
 
-# Uninomial 1T OK
-# Uninomial 2T OK
-# Elination successive OK
-# Bucklin OK
-# Borda OK
+# Uninomial 1T OK -- Refonte OK
+# Uninomial 2T OK -- Refonte OK
+# Elination successive OK -- Refonte OK
+# Bucklin OK -- Refonte OK
+# Borda OK -- Refonte OK
 # Nanson ?
 # Minimax OK (à vérifier)
-# Copeland OK (à vérifier)
+# Copeland OK -- Refonte OK
 # Kemeny ?
-
-
-# Approbation OK
+# Approbation OK -- Refonte OK
 # Condorcet KO
 
 
 # Matrice de préférences
-#preferences <- matrix(c(1, 3, 1, 2, 1, 3, 2, 2, 3, 1, 3, 2, 3, 1, 2, 2, 3, 2, 1, 1), nrow = 3, ncol = 5, byrow = TRUE)
+#preferences <- matrix(c(1, 3, 1, 2, 1, 3, 2, 2, 3, 1, 3, 2, 3, 1, 2, 2, 3, 2, 1, 1), nrow = 4, ncol = 5, byrow = TRUE)
 #rownames(preferences) <- c("Candidat 1", "Candidat 2", "Candidat 3")
 #colnames(preferences) <- paste0("V", 1:ncol(preferences))
 
@@ -34,12 +32,14 @@
 #' @param n_round int
 #' @returns winner_idx
 uninominal <- function(situation, n_round = 1) {
+  situation <- rename_rows(situation)
   # Calculer le nombre de candidats et de votants
   n_candidates <- nrow(situation)
   n_voters <- ncol(situation)
-
   # Initialiser le vecteur de voix pour chaque candidat
-  vote_counts <- rep(0, n_candidates)
+  candidates_names <- rownames(situation)
+  vote_counts <- rep(0, length(candidates_names))
+  names(vote_counts) <- candidates_names
 
   # Pour chaque votant, trouver le candidat préféré et ajouter une voix pour ce candidat
   for (i in 1:n_voters) {
@@ -49,7 +49,7 @@ uninominal <- function(situation, n_round = 1) {
     # Ajouter une voix pour le candidat préféré du votant i
     vote_counts[fav_candidate] <- vote_counts[fav_candidate] + 1
   }
-
+  print(vote_counts)
   if(n_round == 1) {
     # Vote uninominal à un tour : trouver le candidat avec le plus de voix et retourner son indice
     winner_idx <- which(vote_counts == max(vote_counts)) # pour gérer les égalités
@@ -61,7 +61,7 @@ uninominal <- function(situation, n_round = 1) {
       # Si aucun candidat n'a la majorité absolue,on passe au second tour
       top2_indices <- order(vote_counts, decreasing = TRUE)[1:2]
       situation2 <- situation[top2_indices,]
-      winner_idx2 <- uninominal_vote(situation2, n_round = 1)
+      winner_idx2 <- uninominal(situation2, n_round = 1)
       return(winner_idx2)
     } else {
       # Sinon, le premier candidat est élu
@@ -78,8 +78,10 @@ uninominal <- function(situation, n_round = 1) {
 #' @param situation voters preferences
 #' @returns winner
 approbal <- function(situation) {
+  situation <- rename_rows(situation)
   # Calcule le nombre d'approbations pour chaque candidat (ligne)
   approbations <- apply(situation, 1, function(x) sum(x > 0.5)) # 0.5 : à changer peut-être
+  print(approbations)
   # Retourne le(s) candidat(s) ayant obtenu le plus grand nombre d'approbations
   winner <- which(approbations == max(approbations))
   return(winner)
@@ -90,8 +92,7 @@ approbal <- function(situation) {
 #' @returns winner
 #' @export
 borda <- function(situation) {
-  n_candidats <- nrow(situation)
-  n_voters <- ncol(situation)
+  situation <- rename_rows(situation)
   situation <- preferences_to_borda_points(situation)
   # Calculer le total de chaque ligne
   totaux <- rowSums(situation)
@@ -184,7 +185,11 @@ condorcetV2 <- function(preference_matrix) {
 copeland <- function(preference_matrix) {
   n <- nrow(preference_matrix)
   preference_matrix <- preferences_to_ranks(preference_matrix)
-  scores <- rep(0, n)
+  preference_matrix <- rename_rows(preference_matrix)
+  candidates_names <- rownames(preference_matrix)
+  scores <- rep(0, length(candidates_names))
+  names(scores) <- candidates_names
+  print(scores)
   for (i in 1:(n - 1)) {
     for (j in (i + 1):n) {
       wins_i <- sum(preference_matrix[i,] < preference_matrix[j,])
@@ -199,6 +204,7 @@ copeland <- function(preference_matrix) {
       }
     }
   }
+  print(scores)
 
   winners <- which(scores == max(scores))
   if (length(winners) == 1) {
@@ -242,12 +248,14 @@ minimax <- function(preference_matrix) {
 #' @returns remaining_candidates
 successif_elimination <- function(pref_matrix) {
   pref_matrix <- preferences_to_ranks(pref_matrix)
+  pref_matrix <- rename_rows(pref_matrix)
   num_candidates <- nrow(pref_matrix)
-  remaining_candidates <- 1:num_candidates
+  remaining_candidates <- rownames(pref_matrix)
   View(pref_matrix)
   while (length(remaining_candidates) > 1) {
     # Calculer le total de voix pour chaque candidat restant
-    candidate_votes <- rep(0, num_candidates)
+    candidate_votes <- rep(0, length(remaining_candidates))
+    names(candidate_votes) <- remaining_candidates
     for (i in remaining_candidates) {
       candidate_votes[i] <- sum(pref_matrix[i,] == 1) # on choisit le candidat pref de chaque votant
     }
@@ -260,10 +268,10 @@ successif_elimination <- function(pref_matrix) {
     }
     # Éliminer le(s) candidat(s) ayant le moins de voix
     min_votes <- min(candidate_votes[remaining_candidates])
-    eliminated_candidates <- which(candidate_votes == min_votes)
-    print("éliminé : ")
-    print(eliminated_candidates)
+    eliminated_indices <- which(candidate_votes == min_votes)
+    eliminated_candidates <- rownames(pref_matrix)[eliminated_indices]
     remaining_candidates <- setdiff(remaining_candidates, eliminated_candidates)
+
     # Redistribuer les préférences des votants pour prendre en compte l'élimination du candidat
     pref_matrix <- reallocate_preferences(pref_matrix,eliminated_candidates)
   }
@@ -276,16 +284,20 @@ successif_elimination <- function(pref_matrix) {
 #' @returns winner
 bucklin <- function(pref_matrix) {
   pref_matrix <- preferences_to_ranks(pref_matrix)
+  pref_matrix <- rename_rows(pref_matrix)
   num_voters <- ncol(pref_matrix)
   num_candidates <- nrow(pref_matrix)
-  candidate_votes <- rep(0, num_candidates)
+  remaining_candidates <- rownames(pref_matrix)
+  candidate_votes <- rep(0, length(remaining_candidates))
+  names(candidate_votes) <- remaining_candidates
+
+  #candidate_votes <- rep(0, num_candidates)
   View(pref_matrix)
   winner <- FALSE
   n_round <- 1
   majority_threshold <- ceiling(num_voters / 2)
-  print("Majorité : ")
+  print("Majorite : ")
   print(majority_threshold)
-
   while(!winner) {
     print("Round : ")
     print(n_round)
@@ -327,33 +339,38 @@ bucklin <- function(pref_matrix) {
 nanson <- function(pref_matrix) {
   n_candidats <- nrow(pref_matrix)
   n_voters <- ncol(pref_matrix)
+  View(pref_matrix)
   pref_matrix <- preferences_to_borda_points(pref_matrix)
-  eliminated_candidates <- 1:n_candidats
   winner <- FALSE
   #candidate_votes <- rep(0, n_candidats)
-  remaining_candidats <- rep(1, n_candidats)
+  #remaining_candidats <- rep(1, n_candidats)
+  remaining_candidates <- 1:n_candidats
 
-  # faire borda puis élimination succ => reallocate
   while(!winner){
     # Calculer le total de chaque ligne
     candidate_votes <- rowSums(pref_matrix)
     print(candidate_votes)
-    mean <- sum(candidate_votes/sum(remaining_candidats == 1))
-    print("moyenne")
+    mean <- sum(candidate_votes/length(remaining_candidates))
+    print("moyenne :")
     print(mean)
-    for (i in 1:n_candidats) {
-      if(candidate_votes[i] < mean){
-        remaining_candidats[i] <- 0
-        pref_matrix[i,] <- 0 # on mets 0 sur toute la ligne, car de toute façon ça ne fait pas baisser la mean
-      }
-    }
-    View(pref_matrix)
-    pref_matrix <- points_to_preferences(pref_matrix) # points de borda => préférences
-    pref_matrix <- reallocate_preferences(pref_matrix) # on enlève le(s) éliminé(s)  OK
-    # pref_matrix <- preferences_to_borda_points(pref_matrix) # on remets en points pour Borda
+    #for (i in 1:n_candidats) {
+      #if(candidate_votes[i] < mean){
+        #remaining_candidates[i] <- 0
+        #eliminated_candidates[i] <- 0
+        #pref_matrix[i,] <- 0 # on mets 0 sur toute la ligne, car de toute façon ça ne fait pas baisser la mean
+    #}
+    #}
+    #below_mean <- min(candidate_votes[remaining_candidates])
+    eliminated_candidates <- which(candidate_votes < mean)
+    remaining_candidates <- setdiff(remaining_candidates, eliminated_candidates)
+
+    # bug juste en bas
+    pref_matrix <- points_to_preferences(pref_matrix,eliminated_candidates) # points de borda => préférences KO
+    pref_matrix <- reallocate_preferences(pref_matrix,eliminated_candidates) # on enlève le(s) éliminé(s)  OK
+    # pref_matrix <- preferences_to_points(pref_matrix) # on remets en points pour Borda
     # puis on boucle jusqu'à ce qu'on trouve le vainqueur
 
-    View(pref_matrix)
+    #View(pref_matrix)
     print(candidate_votes)
 
     # =====
