@@ -11,10 +11,12 @@
 # Bucklin OK -- Refonte OK
 # Borda OK -- Refonte OK
 # Nanson ?
-# Minimax OK (à vérifier)
+# Minimax (à vérifier)
 # Copeland OK -- Refonte OK
 # Kemeny ?
 # Approbation OK -- Refonte OK
+
+
 # Condorcet KO
 
 
@@ -291,8 +293,6 @@ bucklin <- function(pref_matrix) {
   candidate_votes <- rep(0, length(remaining_candidates))
   names(candidate_votes) <- remaining_candidates
 
-  #candidate_votes <- rep(0, num_candidates)
-  View(pref_matrix)
   winner <- FALSE
   n_round <- 1
   majority_threshold <- ceiling(num_voters / 2)
@@ -341,43 +341,36 @@ nanson <- function(pref_matrix) {
   n_voters <- ncol(pref_matrix)
   View(pref_matrix)
   pref_matrix <- preferences_to_borda_points(pref_matrix)
-  winner <- FALSE
-  #candidate_votes <- rep(0, n_candidats)
-  #remaining_candidats <- rep(1, n_candidats)
-  remaining_candidates <- 1:n_candidats
-
-  while(!winner){
-    # Calculer le total de chaque ligne
+  pref_matrix <- rename_rows(pref_matrix)
+  remaining_candidates <- rownames(pref_matrix)
+  candidate_votes <- rep(0, length(remaining_candidates))
+  names(candidate_votes) <- remaining_candidates
+  while(length(remaining_candidates) > 1){
+    # BORDA :
     candidate_votes <- rowSums(pref_matrix)
     print(candidate_votes)
     mean <- sum(candidate_votes/length(remaining_candidates))
     print("moyenne :")
     print(mean)
-    #for (i in 1:n_candidats) {
-      #if(candidate_votes[i] < mean){
-        #remaining_candidates[i] <- 0
-        #eliminated_candidates[i] <- 0
-        #pref_matrix[i,] <- 0 # on mets 0 sur toute la ligne, car de toute façon ça ne fait pas baisser la mean
-    #}
-    #}
-    #below_mean <- min(candidate_votes[remaining_candidates])
-    eliminated_candidates <- which(candidate_votes < mean)
+    # Éliminations :
+    below_mean <- min(candidate_votes[remaining_candidates])
+    eliminated_indices <- which(candidate_votes < mean)
+    eliminated_candidates <- rownames(pref_matrix)[eliminated_indices]
+    print("eliminé : ")
+    print(eliminated_candidates)
     remaining_candidates <- setdiff(remaining_candidates, eliminated_candidates)
+    print("remainning : ")
+    print(remaining_candidates)
 
-    # bug juste en bas
-    pref_matrix <- points_to_preferences(pref_matrix,eliminated_candidates) # points de borda => préférences KO
-    pref_matrix <- reallocate_preferences(pref_matrix,eliminated_candidates) # on enlève le(s) éliminé(s)  OK
-    # pref_matrix <- preferences_to_points(pref_matrix) # on remets en points pour Borda
-    # puis on boucle jusqu'à ce qu'on trouve le vainqueur
-
-    #View(pref_matrix)
+    # Préparation nouveau calcul de Borda, baisser les points
+    pref_matrix <- points_to_preferences(pref_matrix,eliminated_candidates)
     print(candidate_votes)
-
-    # =====
-    # Retourner tous les indices des lignes ayant un total maximal
-    winner <- which(candidate_votes == max(candidate_votes))
-    return(winner)
   }
+  # =====
+  # GÉRER LES ÉGALITÉS !!!!!!
+  winner <- which(candidate_votes == max(candidate_votes))
+  return(winner)
+
 }
 
 
