@@ -390,6 +390,8 @@ approbal <- function(situation, mode = "seuil") {
   situation <- rename_rows(situation)
   n_candidate <- nrow(situation)
   n_voter <- ncol(situation)
+  candidate_votes <- rep(0, n_candidate)
+  names(candidate_votes) <- rownames(situation)
   # Calcule le nombre d'approbations pour chaque candidat (ligne)
   if(mode == "fixe"){
     if(n_candidate == 2){
@@ -401,42 +403,29 @@ approbal <- function(situation, mode = "seuil") {
     }else{
       n_appro <- round(n_candidate/2 - 2)
     }
-    candidate_votes <- rep(0, n_candidate)
-    names(candidate_votes) <- rownames(situation)
     for(i in 1:n_voter){
       indices_lignes <- tail(order(situation[,i]), n_appro)
       candidate_votes[indices_lignes] <- candidate_votes[indices_lignes] + 1
     }
-
-    winner <- which(candidate_votes == max(candidate_votes))
+    print(candidate_votes)
   }else if(mode == "poisson"){
-
     lambda <- n_candidate/2 # moyenne & variance de la loi
-
     poisson_values <- rpois(n_voter, lambda)
     bounded_poisson_values <- pmax(pmin(poisson_values, n_candidate - 1), 1) # n_appro de 1 à length(n_candidat-1)
-
     hist(bounded_poisson_values)
-    candidate_votes <- rep(0, n_candidate)
-    names(candidate_votes) <- rownames(situation)
     for(i in 1:n_voter){
       indices_lignes <- tail(order(situation[,i]), bounded_poisson_values[i])
       candidate_votes[indices_lignes] <- candidate_votes[indices_lignes] + 1
     }
-
-    winner <- which(candidate_votes == max(candidate_votes))
+    print(candidate_votes)
   }else{
-    # approbation pour tout ceux dont distance > 0.5
-    approbations <- apply(situation, 1, function(x) sum(x > 0.5))
-    print(approbations)
-    # Retourne le(s) candidat(s) ayant obtenu le plus grand nombre d'approbations
-    winner <- which(approbations == max(approbations))
+    # approbation pour tout ceux dont la préférences > 0.5
+    candidate_votes <- apply(situation, 1, function(x) sum(x > 0.5))
+    print(candidate_votes)
   }
-
+  # Retourne le(s) candidat(s) ayant obtenu le plus grand nombre d'approbations
+  winner <- which(candidate_votes == max(candidate_votes))
   return(winner)
 }
-
-# base seuil, nb fixe de candidats élu, nb de candidats élu avec lois de Poissons rpois(1000,3)
-#
 
 
