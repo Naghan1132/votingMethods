@@ -8,6 +8,8 @@ reallocate_points(points_matrix, eliminated_candidates)
 }
 \arguments{
 \item{points_matrix}{voters preferences}
+
+\item{eliminated_candidates}{eliminated_candidates}
 }
 \value{
 preferences_matrix

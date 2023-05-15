@@ -9,7 +9,7 @@ reallocate_preferences(pref_matrix, eliminated_candidates)
 \arguments{
 \item{pref_matrix}{voters preferences}
 
-\item{eliminated_candidate}{eliminated index}
+\item{eliminated_candidates}{eliminated candidates}
 }
 \value{
 matrice_sans_zero

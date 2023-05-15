@@ -4,16 +4,20 @@
 #   library(voteSim)
 #   uninominal_vote(generate_beta(10,3))
 
-
+# Ordre de préférences :
 # Uninomial 1T OK -- Refonte OK
 # Uninomial 2T OK -- Refonte OK
 # Elination successive OK -- Refonte OK
 # Bucklin OK -- Refonte OK
 # Borda OK -- Refonte OK
-# Nanson ? (à revoir un peu)
+# Nanson OK -- Refonte OK
 # Minimax (à vérifier)
 # Copeland OK -- Refonte OK
 # Kemeny ?
+
+# Vote par évaluation :
+# Vote à la moyenne ?
+# Jugement Majoritaire ?
 # Approbation OK -- Refonte OK
 
 
@@ -111,7 +115,7 @@ condorcet <- function(preference_matrix) {
   n <- nrow(preference_matrix) # nombre de candidats
   preference_matrix <- preferences_to_ranks(preference_matrix)
   wins <- rep(0, n) # initialise le vecteur de victoires
-  View(preference_matrix)
+  #(preference_matrix)
   # Pour chaque paire de candidats, compte le nombre de victoires en tête-à-tête
   for (i in 1:(n)) {
     for (j in 1:(n)){
@@ -126,7 +130,7 @@ condorcet <- function(preference_matrix) {
     }
    }
   }
-  View(wins)
+  ###View(wins)
   # Trouve le candidat avec le plus de victoires
   max_wins <- max(wins)
   if (max_wins == 0) {
@@ -149,7 +153,7 @@ condorcet <- function(preference_matrix) {
 condorcetV2 <- function(preference_matrix) {
   n <- nrow(preference_matrix)
   preference_matrix <- preferences_to_ranks(preference_matrix)
-  View(preference_matrix)
+  ###View(preference_matrix)
   # Calcule la matrice des duels
   duel_matrix <- matrix(0, n, n)
   for (i in 1:n) {
@@ -164,7 +168,7 @@ condorcetV2 <- function(preference_matrix) {
       }
     }
   }
-  View(duel_matrix)
+  ##View(duel_matrix)
   # Vérifie s'il y a un vainqueur de Condorcet
   row_sums <- rowSums(duel_matrix)
   col_sums <- colSums(duel_matrix)
@@ -223,9 +227,11 @@ copeland <- function(preference_matrix) {
 minimax <- function(preference_matrix) {
   n <- nrow(preference_matrix)
   preference_matrix <- preferences_to_ranks(preference_matrix)
+  preference_matrix <- rename_rows(preference_matrix)
+  candidates_names <- rownames(preference_matrix)
   # Calcule les distances entre chaque paire de candidats - matrice de duels
   distances <- matrix(0, n, n)
-  View(preference_matrix)
+  ##View(preference_matrix)
   for (i in 1:n) {
     for (j in 1:n) {
       if (i != j) {
@@ -235,11 +241,12 @@ minimax <- function(preference_matrix) {
   }
   # Calcule le risque maximum pour chaque candidat
   risks <- apply(distances, 1, max)
-  View(distances)
+  ##View(distances)
+  ##View(risks)
   # Trouve le candidat avec le risque maximum le plus faible
   winner <- which.min(risks)
   # Renvoie le candidat élu
-  return(winner)
+  return(candidates_names[winner])
 }
 
 
@@ -252,7 +259,7 @@ successif_elimination <- function(pref_matrix) {
   pref_matrix <- rename_rows(pref_matrix)
   num_candidates <- nrow(pref_matrix)
   remaining_candidates <- rownames(pref_matrix)
-  View(pref_matrix)
+  print(pref_matrix)
   while (length(remaining_candidates) > 1) {
     # Calculer le total de voix pour chaque candidat restant
     candidate_votes <- rep(0, length(remaining_candidates))
@@ -334,11 +341,11 @@ bucklin <- function(pref_matrix) {
 #' Nanson method
 #' @export
 #' @param pref_matrix voters preferences
-#' @returns winner
+#' @returns remaining_candidates
 nanson <- function(pref_matrix) {
   n_candidats <- nrow(pref_matrix)
   n_voters <- ncol(pref_matrix)
-  View(pref_matrix)
+  ##View(pref_matrix)
   pref_matrix <- preferences_to_borda_points(pref_matrix)
   pref_matrix <- rename_rows(pref_matrix)
   remaining_candidates <- rownames(pref_matrix)
@@ -367,11 +374,16 @@ nanson <- function(pref_matrix) {
     draw <- draw_test(pref_matrix,remaining_candidates)
   }
   # =====
-  winner <- remaining_candidates
-  return(winner)
+  return(remaining_candidates)
 }
 
 
-
+#' kemeny method
+#' @export
+#' @param pref_matrix voters preferences
+#' @returns remaining_candidates
+kemeny <- function(pref_matrix) {
+  # ordres de pref inversé
+}
 
 

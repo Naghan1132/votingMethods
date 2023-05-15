@@ -8,6 +8,8 @@ draw_test(pref_matrix, remaining_candidates)
 }
 \arguments{
 \item{pref_matrix}{voters preferences}
+
+\item{remaining_candidates}{remaining candidates}
 }
 \value{
 draw - false/true

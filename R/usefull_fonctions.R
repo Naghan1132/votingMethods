@@ -43,6 +43,7 @@ preferences_to_points<- function(preferences){
 #' reallocate_points
 #' @export
 #' @param points_matrix voters preferences
+#' @param eliminated_candidates eliminated_candidates
 #' @returns preferences_matrix
 reallocate_points <- function(points_matrix,eliminated_candidates) {
   num_voters <- ncol(points_matrix)
@@ -69,7 +70,7 @@ reallocate_points <- function(points_matrix,eliminated_candidates) {
 #' reallocate_preferences
 #' @export
 #' @param pref_matrix voters preferences
-#' @param eliminated_candidate eliminated index
+#' @param eliminated_candidates eliminated candidates
 #' @returns matrice_sans_zero
 reallocate_preferences <- function(pref_matrix, eliminated_candidates) {
   num_voters <- ncol(pref_matrix)
@@ -88,7 +89,6 @@ reallocate_preferences <- function(pref_matrix, eliminated_candidates) {
   }
   eliminated_indices <- which(row_names %in% eliminated_candidates)
   matrice_sans_zero <- reallocated_prefs[-eliminated_indices, ]
-  print("reallocate matrix : ")
   print(matrice_sans_zero)
   return(matrice_sans_zero)
 }
@@ -96,6 +96,7 @@ reallocate_preferences <- function(pref_matrix, eliminated_candidates) {
 #' draw_test
 #' @export
 #' @param pref_matrix voters preferences
+#' @param remaining_candidates remaining candidates
 #' @returns draw - false/true
 draw_test <- function(pref_matrix,remaining_candidates){
   print(length(remaining_candidates))
