@@ -9,6 +9,9 @@ condorcet(preference_matrix)
 \arguments{
 \item{preference_matrix}{voters preferences}
 }
+\value{
+winner, can be NULL
+}
 \description{
 Condorcet
 }

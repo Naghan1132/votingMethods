@@ -26,6 +26,8 @@
 
 # ==== ==== ==== ==== ==== ==== ==== ==== ==== ====
 
+
+
 #' Uninominal vote
 #' @export
 #' @param situation voters preferences
@@ -87,53 +89,14 @@ borda <- function(situation) {
   return(winner)
 }
 
-
 #' Condorcet
 #' @export
 #' @param preference_matrix voters preferences
-condorcet <- function(preference_matrix) {
-  n <- nrow(preference_matrix) # nombre de candidats
-  preference_matrix <- preferences_to_ranks(preference_matrix)
-  wins <- rep(0, n) # initialise le vecteur de victoires
-  #(preference_matrix)
-  # Pour chaque paire de candidats, compte le nombre de victoires en tête-à-tête
-  for (i in 1:(n)) {
-    for (j in 1:(n)){
-      if(i!=j){
-      countWin <- sum(preference_matrix[i,] < preference_matrix[j,])
-      # test de la majorité
-      if (countWin > n/2) {
-        wins[i] <- wins[i] + 1
-      } else if (countWin < n/2) {
-        wins[j] <- wins[j] + 1
-      }
-    }
-   }
-  }
-  ###View(wins)
-  # Trouve le candidat avec le plus de victoires
-  max_wins <- max(wins)
-  if (max_wins == 0) {
-    # Il n'y a pas de vainqueur de Condorcet
-    return(NULL)
-  } else if (sum(wins == max_wins) > 1) {
-    # Il y a une égalité de vainqueurs de Condorcet
-    return(NULL)
-  } else {
-    # winner
-    return(which.max(wins))
-  }
-}
-
-
-#' CondorcetV2
-#' @export
-#' @param preference_matrix voters preferences
 #' @return winner, can be NULL
-condorcetV2 <- function(preference_matrix) {
+condorcet <- function(preference_matrix) {
   n <- nrow(preference_matrix)
   preference_matrix <- preferences_to_ranks(preference_matrix)
-  ###View(preference_matrix)
+  print(preference_matrix)
   # Calcule la matrice des duels
   duel_matrix <- matrix(0, n, n)
   for (i in 1:n) {
@@ -148,7 +111,7 @@ condorcetV2 <- function(preference_matrix) {
       }
     }
   }
-  ##View(duel_matrix)
+  print(duel_matrix)
   # Vérifie s'il y a un vainqueur de Condorcet
   row_sums <- rowSums(duel_matrix)
   col_sums <- colSums(duel_matrix)
@@ -377,22 +340,27 @@ kemeny <- function(pref_matrix) {
 
 # ==== VOTE PAR ÉVALUATION ====
 
+#' Range voting (vote à la moyenne)
+#' @export
+#' @param situation voters preferences
+#' @returns winner
+range_voting <- function(situation) {
+  seuils <-  c(0.1,0.3,0.5,0.7,0.9)
 
-
-# placer les votes des évaluations avec d'autres fonction de génération ?? comme ça pas de seuil à avoir
+}
 
 #' Approbal vote
 #' @export
 #' @param situation voters preferences
 #' @param mode n_approbation mode
 #' @returns winner
-approbal <- function(situation, mode = "seuil") {
+approbal <- function(situation, mode = "fixe") {
   situation <- rename_rows(situation)
   n_candidate <- nrow(situation)
   n_voter <- ncol(situation)
   candidate_votes <- rep(0, n_candidate)
   names(candidate_votes) <- rownames(situation)
-  # Calcule le nombre d'approbations pour chaque candidat (ligne)
+  # Calcule le nombre d'approbations pour chaque candidat
   if(mode == "fixe"){
     if(n_candidate == 2){
       n_appro <- 1
@@ -427,5 +395,6 @@ approbal <- function(situation, mode = "seuil") {
   winner <- which(candidate_votes == max(candidate_votes))
   return(winner)
 }
+
 
 
