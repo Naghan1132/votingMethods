@@ -40,18 +40,16 @@ preferences_to_points<- function(preferences){
   # on ne prends pas en compte les zéro !!
 }
 
-#' points_to_preferences
+#' reallocate_points
 #' @export
 #' @param points_matrix voters preferences
 #' @returns preferences_matrix
-points_to_preferences <- function(points_matrix,eliminated_candidates) {
+reallocate_points <- function(points_matrix,eliminated_candidates) {
   num_voters <- ncol(points_matrix)
   num_candidates <- nrow(points_matrix)
   row_names <- rownames(points_matrix)
   preferences_matrix <- matrix(0, nrow = num_candidates, ncol = num_voters,dimnames = list(row_names, NULL))
   candidate_indices <- setdiff(row_names, eliminated_candidates)
-  print("debut fonction : ")
-  print(points_matrix)
   for (i in 1:num_voters) {
     voter_prefs <- points_matrix[,i]
     shifted_ranks <- voter_prefs
@@ -64,9 +62,7 @@ points_to_preferences <- function(points_matrix,eliminated_candidates) {
   }
   eliminated_indices <- which(row_names %in% eliminated_candidates)
   matrice_sans_zero <- preferences_matrix[-eliminated_indices, ]
-
-  print("fin fonction : ")
-  print(matrice_sans_zero)
+  print(matrice_sans_zero) # OK
   return(matrice_sans_zero)
 }
 
@@ -97,4 +93,20 @@ reallocate_preferences <- function(pref_matrix, eliminated_candidates) {
   return(matrice_sans_zero)
 }
 
+#' draw_test
+#' @export
+#' @param pref_matrix voters preferences
+#' @returns draw - false/true
+draw_test <- function(pref_matrix,remaining_candidates){
+  print(length(remaining_candidates))
+  if(length(remaining_candidates) != 1){
+    candidate_votes <- rowSums(pref_matrix)
+    # Vérification si les sommes des lignes sont toutes égales
+    draw <- length(unique(candidate_votes)) == 1
+  }else{
+    return(TRUE)
+  }
+  print(draw)
+  return(draw)
+}
 

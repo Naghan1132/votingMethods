@@ -10,7 +10,7 @@
 # Elination successive OK -- Refonte OK
 # Bucklin OK -- Refonte OK
 # Borda OK -- Refonte OK
-# Nanson ?
+# Nanson ? (à revoir un peu)
 # Minimax (à vérifier)
 # Copeland OK -- Refonte OK
 # Kemeny ?
@@ -47,7 +47,6 @@ uninominal <- function(situation, n_round = 1) {
   for (i in 1:n_voters) {
     # Trouver l'indice du candidat préféré du votant i sur la colonne i
     fav_candidate <- which.max(situation[, i])
-
     # Ajouter une voix pour le candidat préféré du votant i
     vote_counts[fav_candidate] <- vote_counts[fav_candidate] + 1
   }
@@ -343,11 +342,13 @@ nanson <- function(pref_matrix) {
   pref_matrix <- preferences_to_borda_points(pref_matrix)
   pref_matrix <- rename_rows(pref_matrix)
   remaining_candidates <- rownames(pref_matrix)
-  candidate_votes <- rep(0, length(remaining_candidates))
-  names(candidate_votes) <- remaining_candidates
-  while(length(remaining_candidates) > 1){
+  draw <- FALSE
+  while(length(remaining_candidates) > 2 | !draw){
+    candidate_votes <- rep(0, length(remaining_candidates))
+    names(candidate_votes) <- remaining_candidates
     # BORDA :
     candidate_votes <- rowSums(pref_matrix)
+    print("somme : ")
     print(candidate_votes)
     mean <- sum(candidate_votes/length(remaining_candidates))
     print("moyenne :")
@@ -356,21 +357,18 @@ nanson <- function(pref_matrix) {
     below_mean <- min(candidate_votes[remaining_candidates])
     eliminated_indices <- which(candidate_votes < mean)
     eliminated_candidates <- rownames(pref_matrix)[eliminated_indices]
-    print("eliminé : ")
-    print(eliminated_candidates)
     remaining_candidates <- setdiff(remaining_candidates, eliminated_candidates)
+    pref_matrix <- reallocate_points(pref_matrix,eliminated_candidates)
+
     print("remainning : ")
     print(remaining_candidates)
 
-    # Préparation nouveau calcul de Borda, baisser les points
-    pref_matrix <- points_to_preferences(pref_matrix,eliminated_candidates)
-    print(candidate_votes)
+    # test égalité :
+    draw <- draw_test(pref_matrix,remaining_candidates)
   }
   # =====
-  # GÉRER LES ÉGALITÉS !!!!!!
-  winner <- which(candidate_votes == max(candidate_votes))
+  winner <- remaining_candidates
   return(winner)
-
 }
 
 
