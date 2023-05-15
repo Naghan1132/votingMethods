@@ -4,7 +4,7 @@
 #   library(voteSim)
 #   uninominal_vote(generate_beta(10,3))
 
-# Ordre de préférences :
+# ==== Vote ordre de préférences ====
 # Uninomial 1T OK -- Refonte OK
 # Uninomial 2T OK -- Refonte OK
 # Elination successive OK -- Refonte OK
@@ -15,19 +15,13 @@
 # Copeland OK -- Refonte OK
 # Kemeny ?
 
-# Vote par évaluation :
+# ==== Vote par évaluation ====
 # Vote à la moyenne ?
 # Jugement Majoritaire ?
 # Approbation OK -- Refonte OK
 
 
-# Condorcet KO
-
-
-# Matrice de préférences
-#preferences <- matrix(c(1, 3, 1, 2, 1, 3, 2, 2, 3, 1, 3, 2, 3, 1, 2, 2, 3, 2, 1, 1), nrow = 4, ncol = 5, byrow = TRUE)
-#rownames(preferences) <- c("Candidat 1", "Candidat 2", "Candidat 3")
-#colnames(preferences) <- paste0("V", 1:ncol(preferences))
+# Condorcet (à revoir)
 
 
 # ==== ==== ==== ==== ==== ==== ==== ==== ==== ====
@@ -77,20 +71,6 @@ uninominal <- function(situation, n_round = 1) {
     }
 }
 
-
-#' Approbal vote
-#' @export
-#' @param situation voters preferences
-#' @returns winner
-approbal <- function(situation) {
-  situation <- rename_rows(situation)
-  # Calcule le nombre d'approbations pour chaque candidat (ligne)
-  approbations <- apply(situation, 1, function(x) sum(x > 0.5)) # 0.5 : à changer peut-être
-  print(approbations)
-  # Retourne le(s) candidat(s) ayant obtenu le plus grand nombre d'approbations
-  winner <- which(approbations == max(approbations))
-  return(winner)
-}
 
 #' Borda method
 #' @param situation voters preferences
@@ -350,6 +330,9 @@ nanson <- function(pref_matrix) {
   pref_matrix <- rename_rows(pref_matrix)
   remaining_candidates <- rownames(pref_matrix)
   draw <- FALSE
+
+  # tester si vainqueur de Condorcet ! sinon procédure =>
+
   while(length(remaining_candidates) > 2 | !draw){
     candidate_votes <- rep(0, length(remaining_candidates))
     names(candidate_votes) <- remaining_candidates
@@ -383,7 +366,77 @@ nanson <- function(pref_matrix) {
 #' @param pref_matrix voters preferences
 #' @returns remaining_candidates
 kemeny <- function(pref_matrix) {
-  # ordres de pref inversé
+  # WARNING :
+  # il y a 3 628 800 ordres
+  # possibles pour 10 candidats et plus de 2 milliards de milliards pour 20
+  # candidats !
+  # ordres de pref inversé, calcul nombre inversions
+  pref_matrix <- preferences_to_ranks(pref_matrix)
 }
+
+
+# ==== VOTE PAR ÉVALUATION ====
+
+
+
+# placer les votes des évaluations avec d'autres fonction de génération ?? comme ça pas de seuil à avoir
+
+#' Approbal vote
+#' @export
+#' @param situation voters preferences
+#' @param mode n_approbation mode
+#' @returns winner
+approbal <- function(situation, mode = "seuil") {
+  situation <- rename_rows(situation)
+  n_candidate <- nrow(situation)
+  n_voter <- ncol(situation)
+  # Calcule le nombre d'approbations pour chaque candidat (ligne)
+  if(mode == "fixe"){
+    if(n_candidate == 2){
+      n_appro <- 1
+    }else if(n_candidate < 5){
+      n_appro <- round(n_candidate/2)
+    }else if(n_candidate < 10){
+      n_appro <- round(n_candidate/2 -1)
+    }else{
+      n_appro <- round(n_candidate/2 - 2)
+    }
+    candidate_votes <- rep(0, n_candidate)
+    names(candidate_votes) <- rownames(situation)
+    for(i in 1:n_voter){
+      indices_lignes <- tail(order(situation[,i]), n_appro)
+      candidate_votes[indices_lignes] <- candidate_votes[indices_lignes] + 1
+    }
+
+    winner <- which(candidate_votes == max(candidate_votes))
+  }else if(mode == "poisson"){
+
+    lambda <- n_candidate/2 # moyenne & variance de la loi
+
+    poisson_values <- rpois(n_voter, lambda)
+    bounded_poisson_values <- pmax(pmin(poisson_values, n_candidate - 1), 1) # n_appro de 1 à length(n_candidat-1)
+
+    hist(bounded_poisson_values)
+    candidate_votes <- rep(0, n_candidate)
+    names(candidate_votes) <- rownames(situation)
+    for(i in 1:n_voter){
+      indices_lignes <- tail(order(situation[,i]), bounded_poisson_values[i])
+      candidate_votes[indices_lignes] <- candidate_votes[indices_lignes] + 1
+    }
+
+    winner <- which(candidate_votes == max(candidate_votes))
+  }else{
+    # approbation pour tout ceux dont distance > 0.5
+    approbations <- apply(situation, 1, function(x) sum(x > 0.5))
+    print(approbations)
+    # Retourne le(s) candidat(s) ayant obtenu le plus grand nombre d'approbations
+    winner <- which(approbations == max(approbations))
+  }
+
+  return(winner)
+}
+
+# base seuil, nb fixe de candidats élu, nb de candidats élu avec lois de Poissons rpois(1000,3)
+#
 
 

@@ -4,10 +4,12 @@
 \alias{approbal}
 \title{Approbal vote}
 \usage{
-approbal(situation)
+approbal(situation, mode = "seuil")
 }
 \arguments{
 \item{situation}{voters preferences}
+
+\item{mode}{n_approbation mode}
 }
 \value{
 winner
