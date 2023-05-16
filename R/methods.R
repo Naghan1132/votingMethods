@@ -11,7 +11,7 @@
 # Bucklin OK -- Refonte OK
 # Borda OK -- Refonte OK
 # Nanson OK -- Refonte OK
-# Minimax (à vérifier)
+# Minimax OK -- Refonte OK
 # Copeland OK -- Refonte OK
 # Kemeny ? (pas utile)
 
@@ -195,12 +195,12 @@ minimax <- function(preference_matrix) {
   rows_greater_than_half <- apply(duel_matrix, 1, function(row) all(row > n_voter/2))
   cols_less_than_half <- apply(duel_matrix, 2, function(col) all(col < n_voter/2))
   if (any(rows_greater_than_half == TRUE)) {
-    print("plus grand Condorcet")
-    print(rows_greater_than_half)
+    #print("plus grand Condorcet")
+    #print(rows_greater_than_half)
     winner <- rows_greater_than_half
   }else if(any(cols_less_than_half == TRUE)){
-    print("plus petit Condorcet")
-    print(cols_less_than_half)
+    #print("plus petit Condorcet")
+    #print(cols_less_than_half)
     winner <- cols_less_than_half
   }else{
     # sinon le moins pire des valeurs
@@ -379,14 +379,25 @@ kemeny <- function(pref_matrix) {
 #' @param situation voters preferences
 #' @returns winner
 range_voting <- function(situation) {
-  seuils <-  c(0.1,0.3,0.5,0.7,0.9)
   situation <- rename_rows(situation)
   n_candidate <- nrow(situation)
   n_voter <- ncol(situation)
   candidate_votes <- rep(0, n_candidate)
   names(candidate_votes) <- rownames(situation)
-
+  notes <- c(0,1,2,3,4,5,6,7,8,9)
+  for (i in 1:n_candidate){
+    for(j in 1:n_voter){
+      note <- tail(notes[notes <= 10*situation[i,j]],1) # 10* car préfs entre 0 et 1
+      candidate_votes[i] <- candidate_votes[i] + note
+    }
+  }
+  print(candidate_votes)
+  print(candidate_votes/n_voter)
+  res <- candidate_votes/n_voter
+  winner <- which(res == max(res))
+  return(winner)
 }
+
 
 library("stats")
 library("utils")

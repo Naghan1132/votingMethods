@@ -111,3 +111,8 @@ draw_test <- function(pref_matrix,remaining_candidates){
   return(draw)
 }
 
+
+
+
+
+
