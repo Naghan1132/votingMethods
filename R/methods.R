@@ -296,31 +296,35 @@ nanson <- function(pref_matrix) {
   pref_matrix <- rename_rows(pref_matrix)
   remaining_candidates <- rownames(pref_matrix)
   draw <- FALSE
-
   # tester si vainqueur de Condorcet ! sinon procédure =>
+  condorcet <- condorcet(pref_matrix)
+  if(!is.null(condorcet)){
+    print("Gagnant de Condorcet !")
+    return(condorcet)
+  }else{
+    while(length(remaining_candidates) > 2 | !draw){
+      candidate_votes <- rep(0, length(remaining_candidates))
+      names(candidate_votes) <- remaining_candidates
+      # BORDA :
+      candidate_votes <- rowSums(pref_matrix)
+      print("somme : ")
+      print(candidate_votes)
+      mean <- sum(candidate_votes/length(remaining_candidates))
+      print("moyenne :")
+      print(mean)
+      # Éliminations :
+      below_mean <- min(candidate_votes[remaining_candidates])
+      eliminated_indices <- which(candidate_votes < mean)
+      eliminated_candidates <- rownames(pref_matrix)[eliminated_indices]
+      remaining_candidates <- setdiff(remaining_candidates, eliminated_candidates)
+      pref_matrix <- reallocate_points(pref_matrix,eliminated_candidates)
 
-  while(length(remaining_candidates) > 2 | !draw){
-    candidate_votes <- rep(0, length(remaining_candidates))
-    names(candidate_votes) <- remaining_candidates
-    # BORDA :
-    candidate_votes <- rowSums(pref_matrix)
-    print("somme : ")
-    print(candidate_votes)
-    mean <- sum(candidate_votes/length(remaining_candidates))
-    print("moyenne :")
-    print(mean)
-    # Éliminations :
-    below_mean <- min(candidate_votes[remaining_candidates])
-    eliminated_indices <- which(candidate_votes < mean)
-    eliminated_candidates <- rownames(pref_matrix)[eliminated_indices]
-    remaining_candidates <- setdiff(remaining_candidates, eliminated_candidates)
-    pref_matrix <- reallocate_points(pref_matrix,eliminated_candidates)
+      print("remainning : ")
+      print(remaining_candidates)
 
-    print("remainning : ")
-    print(remaining_candidates)
-
-    # test égalité :
-    draw <- draw_test(pref_matrix,remaining_candidates)
+      # test égalité :
+      draw <- draw_test(pref_matrix,remaining_candidates)
+    }
   }
   # =====
   return(remaining_candidates)
