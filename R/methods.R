@@ -102,11 +102,17 @@ condorcet <- function(preference_matrix) {
   for (i in 1:n) {
     for (j in 1:n) {
       if (i != j) {
-        count <- sum(preference_matrix[i,] < preference_matrix[j,])
-        if (count > n/2) {
-          duel_matrix[i,j] <- duel_matrix[i, j] + 1
-        } else if (count < n/2) {
-          duel_matrix[j, i] <- duel_matrix[j, i] + 1
+        #count <- sum(preference_matrix[i,] < preference_matrix[j,])
+        count_i_j <- sum(preference_matrix[i, ] < preference_matrix[j, ])
+        #print(count_i_j)
+        #print(" < ")
+        count_j_i <- sum(preference_matrix[i, ] > preference_matrix[j, ])
+        #print(count_j_i)
+        if (count_i_j > count_j_i) {
+          duel_matrix[i, j] <- 1
+        }
+        else if (count_i_j < count_j_i) {
+          duel_matrix[j, i] <- 1
         }
       }
     }
@@ -114,12 +120,9 @@ condorcet <- function(preference_matrix) {
   print(duel_matrix)
   # Vérifie s'il y a un vainqueur de Condorcet
   row_sums <- rowSums(duel_matrix)
-  col_sums <- colSums(duel_matrix)
   condorcet_winner <- NULL
   if (any(row_sums == n-1)) {
-    condorcet_winner <- which.max(row_sums)
-  } else if (any(col_sums == n-1)) {
-    condorcet_winner <- which.max(col_sums)
+    condorcet_winner <- which(row_sums == max(row_sums))
   }
   # Renvoie le vainqueur de Condorcet ou NULL s'il n'y en a pas
   return(condorcet_winner)
@@ -349,10 +352,14 @@ range_voting <- function(situation) {
 
 }
 
+library("stats")
+library("utils")
 #' Approbal vote
 #' @export
 #' @param situation voters preferences
 #' @param mode n_approbation mode
+#' @import stats
+#' @import utils
 #' @returns winner
 approbal <- function(situation, mode = "fixe") {
   situation <- rename_rows(situation)
@@ -380,6 +387,7 @@ approbal <- function(situation, mode = "fixe") {
     lambda <- n_candidate/2 # moyenne & variance de la loi
     poisson_values <- rpois(n_voter, lambda)
     bounded_poisson_values <- pmax(pmin(poisson_values, n_candidate - 1), 1) # n_appro de 1 à length(n_candidat-1)
+    print(bounded_poisson_values)
     hist(bounded_poisson_values)
     for(i in 1:n_voter){
       indices_lignes <- tail(order(situation[,i]), bounded_poisson_values[i])
