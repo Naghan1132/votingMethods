@@ -16,7 +16,7 @@
 # Kemeny ? (pas utile)
 
 # ==== Vote par évaluation ====
-# Vote à la moyenne ?
+# Vote à la moyenne OK
 # Jugement Majoritaire ?
 # Approbation OK -- Refonte OK
 
@@ -384,10 +384,10 @@ range_voting <- function(situation) {
   n_voter <- ncol(situation)
   candidate_votes <- rep(0, n_candidate)
   names(candidate_votes) <- rownames(situation)
-  notes <- c(0,1,2,3,4,5,6,7,8,9)
+  seuil <- c(0,1,2,3,4,5,6,7,8,9)
   for (i in 1:n_candidate){
     for(j in 1:n_voter){
-      note <- tail(notes[notes <= 10*situation[i,j]],1) # 10* car préfs entre 0 et 1
+      note <- tail(seuil[seuil <= 10*situation[i,j]],1) # 10* car préfs entre 0 et 1
       candidate_votes[i] <- candidate_votes[i] + note
     }
   }
@@ -398,6 +398,40 @@ range_voting <- function(situation) {
   return(winner)
 }
 
+#' Majority Jugement (Balinski) medianne
+#' @export
+#' @param situation voters preferences
+#' @returns winner
+majority_jugement <- function(situation) {
+  #  À rejeter, Insuffisant, Passable, Assez Bien, Bien, Très Bien, Excellent
+  #     < 0        < 2        < 4        < 6        < 7     < 8        9
+  situation <- rename_rows(situation)
+  n_candidate <- nrow(situation)
+  n_voter <- ncol(situation)
+
+
+  seuils <- c(0,2,4,6,7,8,9)
+  notes <- rep(1:7,1)
+
+  candidate_votes <- lapply(1:n_candidate, function(x) rep(0,length(notes)))
+
+  for (i in 1:n_candidate){
+    for(j in 1:n_voter){
+      seuil <- tail(seuils[seuils <= 10*situation[i,j]],1) # 10* car préfs entre 0 et 1
+      indice_seuil <- which(seuils == seuil)
+      print(10*situation[i,j])
+      print(indice_seuil)
+
+      candidate_votes[[i]][[indice_seuil]] <- candidate_votes[[i]][[indice_seuil]] + 1
+    }
+  }
+  print(candidate_votes)
+  #print(candidate_votes/n_voter)
+  #res <- candidate_votes/n_voter
+  #winner <- which(res == max(res))
+  winner <- NULL
+  return(winner)
+}
 
 library("stats")
 library("utils")
