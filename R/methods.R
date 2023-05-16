@@ -13,7 +13,7 @@
 # Nanson OK -- Refonte OK
 # Minimax (à vérifier)
 # Copeland OK -- Refonte OK
-# Kemeny ?
+# Kemeny ? (pas utile)
 
 # ==== Vote par évaluation ====
 # Vote à la moyenne ?
@@ -21,7 +21,7 @@
 # Approbation OK -- Refonte OK
 
 
-# Condorcet (à revoir)
+# Condorcet OK
 
 
 # ==== ==== ==== ==== ==== ==== ==== ==== ==== ====
@@ -172,26 +172,53 @@ copeland <- function(preference_matrix) {
 #' @return winner, can be NULL
 minimax <- function(preference_matrix) {
   n <- nrow(preference_matrix)
+  n_voter <- ncol(preference_matrix)
   preference_matrix <- preferences_to_ranks(preference_matrix)
   preference_matrix <- rename_rows(preference_matrix)
   candidates_names <- rownames(preference_matrix)
   # Calcule les distances entre chaque paire de candidats - matrice de duels
-  distances <- matrix(0, n, n)
-  ##View(preference_matrix)
+  duel_matrix <- matrix(0, n, n)
+  print(preference_matrix)
   for (i in 1:n) {
     for (j in 1:n) {
       if (i != j) {
-        distances[i,j] <- sum(preference_matrix[i,] < preference_matrix[j,])
+        win_i_j <- sum(preference_matrix[i,] < preference_matrix[j,]) # ok
+        duel_matrix[i,j] <- win_i_j
+        duel_matrix[j,i] <- n_voter - win_i_j
       }
     }
   }
-  # Calcule le risque maximum pour chaque candidat
-  risks <- apply(distances, 1, max)
-  ##View(distances)
-  ##View(risks)
-  # Trouve le candidat avec le risque maximum le plus faible
-  winner <- which.min(risks)
-  # Renvoie le candidat élu
+  print(duel_matrix) # OK
+  row_sums <- rowSums(duel_matrix)
+  col_sums <- colSums(duel_matrix)
+  # Vainqueur de Condorcet :
+  rows_greater_than_half <- apply(duel_matrix, 1, function(row) all(row > n_voter/2))
+  cols_less_than_half <- apply(duel_matrix, 2, function(col) all(col < n_voter/2))
+  if (any(rows_greater_than_half == TRUE)) {
+    print("plus grand Condorcet")
+    print(rows_greater_than_half)
+    winner <- rows_greater_than_half
+  }else if(any(cols_less_than_half == TRUE)){
+    print("plus petit Condorcet")
+    print(cols_less_than_half)
+    winner <- cols_less_than_half
+  }else{
+    # sinon le moins pire des valeurs
+    row_worst_values <- rep(Inf, n)  # Initialiser avec une valeur infinie
+    for (i in 1:n) {
+      for (j in 1:n) {
+        if (i != j) {  # Exclure la diagonale symétrique
+          value <- duel_matrix[i, j]
+          if (value < row_worst_values[i]) {
+            row_worst_values[i] <- value
+          }
+        }
+      }
+    }
+    row_with_highest_worst_value <- which.max(row_worst_values) # gérer les égalités ??
+    winner <- row_with_highest_worst_value
+  }
+
   return(candidates_names[winner])
 }
 
@@ -353,6 +380,11 @@ kemeny <- function(pref_matrix) {
 #' @returns winner
 range_voting <- function(situation) {
   seuils <-  c(0.1,0.3,0.5,0.7,0.9)
+  situation <- rename_rows(situation)
+  n_candidate <- nrow(situation)
+  n_voter <- ncol(situation)
+  candidate_votes <- rep(0, n_candidate)
+  names(candidate_votes) <- rownames(situation)
 
 }
 
