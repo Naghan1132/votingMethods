@@ -403,8 +403,10 @@ range_voting <- function(situation) {
 #' @param situation voters preferences
 #' @returns winner
 majority_jugement <- function(situation) {
-  #  À rejeter, Insuffisant, Passable, Assez Bien, Bien, Très Bien, Excellent
-  #     < 0        < 2        < 4        < 6        < 7     < 8        9
+  #  À rejeter, Insuffisant, Passable, Assez Bien,  Bien,   Très Bien,  Excellent
+  #     < 0        < 2        < 4        < 6         < 7       < 8         9
+  #   1 point   2 points    3 points   4 points    5 points  6 points   7 points
+
   situation <- rename_rows(situation)
   n_candidate <- nrow(situation)
   n_voter <- ncol(situation)

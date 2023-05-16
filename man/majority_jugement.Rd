@@ -2,7 +2,7 @@
 % Please edit documentation in R/methods.R
 \name{majority_jugement}
 \alias{majority_jugement}
-\title{Majority Jugement (Balinski)}
+\title{Majority Jugement (Balinski) medianne}
 \usage{
 majority_jugement(situation)
 }
@@ -13,5 +13,5 @@ majority_jugement(situation)
 winner
 }
 \description{
-Majority Jugement (Balinski)
+Majority Jugement (Balinski) medianne
 }
