@@ -418,43 +418,55 @@ majority_jugement <- function(situation) {
   notes <- rep(1:7,1)
   candidate_votes <- lapply(1:n_candidate, function(x) rep(0,length(notes)))
 
-  # attribution des évaluations
+  # Attribution des évaluations
   for (i in 1:n_candidate){
     for(j in 1:n_voter){
       seuil <- tail(seuils[seuils <= 10*situation[i,j]],1) # 10* car préfs entre 0 et 1
       indice_seuil <- which(seuils == seuil)
-      #print(10*situation[i,j])
-      #print(indice_seuil)
       candidate_votes[[i]][[indice_seuil]] <- candidate_votes[[i]][[indice_seuil]] + 1
     }
   }
-  # comptage les votes
-  res_votes <- rep(0,n_candidate)
+  # Comptage les votes
+  res_votes <- list()
   for (i in 1:n_candidate){
-    print(candidate_votes[[i]])
     cpt <- 1
     vote_count <-0
     for(j in candidate_votes[[i]]){
       vote_count <- vote_count + j
       if(vote_count >= medianne){
-        print(vote_count)
-        print(notes[cpt])
-        # stocker dans un truc
         res_votes[[i]] <- c(notes[cpt],vote_count)
-        print(res_votes[[i]])
         break
       }
       cpt <- cpt + 1
     }
   }
   print(res_votes)
-  # vérif
-  remainning_candidates <- rep(1,n_candidate)
+  max_notes <- -Inf  # Valeur minimale initiale pour les notes
+  max_vote_count <- -Inf  # Valeur minimale initiale pour les votes
+  indice_max <- NULL
+  # Parcourir la liste res_votes
+  for (i in 1:length(res_votes)) {
+    # Extraire les valeurs de notes et vote_count
+    current_notes <- res_votes[[i]][1]
+    current_vote_count <- res_votes[[i]][2]
+    # Vérifier si les notes actuelles sont supérieures à la valeur maximale
+    if (current_notes > max_notes) {
+      # Mettre à jour la valeur maximale des notes et vote_count
+      max_notes <- current_notes
+      max_vote_count <- current_vote_count
+      indice_max <- i
+    }else if(current_notes == max_notes){
+      if(current_vote_count > max_vote_count){
+        max_notes <- current_notes
+        max_vote_count <- current_vote_count
+        indice_max <- i
+      }
+    }
+  }
 
-  #print(candidate_votes/n_voter)
-  #res <- candidate_votes/n_voter
-  #winner <- which(res == max(res))
-  winner <- NULL
+  print(indice_max)
+  print(max_vote_count)
+  winner <- rownames(situation)[indice_max]
   return(winner)
 }
 
