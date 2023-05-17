@@ -17,7 +17,7 @@
 
 # ==== Vote par évaluation ====
 # Vote à la moyenne OK
-# Jugement Majoritaire ?
+# Jugement Majoritaire OK
 # Approbation OK -- Refonte OK
 
 
@@ -54,19 +54,21 @@ uninominal <- function(situation, n_round = 1) {
   if(n_round == 1) {
     # Vote uninominal à un tour : trouver le candidat avec le plus de voix et retourner son indice
     winner_idx <- which(vote_counts == max(vote_counts)) # pour gérer les égalités
-    return(winner_idx)
+    winner <- candidates_names[winner_idx]
+    return(winner)
   } else if(n_round == 2) {
     # Vote uninominal à deux tours
     winner_idx <- which.max(vote_counts)
+    winner <- candidates_names[winner_idx]
     if(vote_counts[winner_idx] / n_voters < 0.5) {
       # Si aucun candidat n'a la majorité absolue,on passe au second tour
       top2_indices <- order(vote_counts, decreasing = TRUE)[1:2]
       situation2 <- situation[top2_indices,]
-      winner_idx2 <- uninominal(situation2, n_round = 1)
-      return(winner_idx2)
+      winner2 <- uninominal(situation2, n_round = 1)
+      return(winner2)
     } else {
       # Sinon, le premier candidat est élu
-      return(winner_idx)
+      return(winner)
     }
   } else {
     stop("Number of rounds must be 1 or 2")
@@ -80,12 +82,14 @@ uninominal <- function(situation, n_round = 1) {
 #' @export
 borda <- function(situation) {
   situation <- rename_rows(situation)
+  candidates_names <- rownames(situation)
   situation <- preferences_to_borda_points(situation)
   # Calculer le total de chaque ligne
   totaux <- rowSums(situation)
   print(totaux)
   # Retourner tous les indices des lignes ayant un total maximal
-  winner <- which(totaux == max(totaux))
+  winner_idx <- which(totaux == max(totaux))
+  winner <- candidates_names[winner_idx]
   return(winner)
 }
 
@@ -94,6 +98,8 @@ borda <- function(situation) {
 #' @param preference_matrix voters preferences
 #' @return winner, can be NULL
 condorcet <- function(preference_matrix) {
+  preference_matrix <- rename_rows(preference_matrix)
+  candidates_names <- rownames(preference_matrix)
   n <- nrow(preference_matrix)
   preference_matrix <- preferences_to_ranks(preference_matrix)
   print(preference_matrix)
@@ -102,12 +108,8 @@ condorcet <- function(preference_matrix) {
   for (i in 1:n) {
     for (j in 1:n) {
       if (i != j) {
-        #count <- sum(preference_matrix[i,] < preference_matrix[j,])
         count_i_j <- sum(preference_matrix[i, ] < preference_matrix[j, ])
-        #print(count_i_j)
-        #print(" < ")
         count_j_i <- sum(preference_matrix[i, ] > preference_matrix[j, ])
-        #print(count_j_i)
         if (count_i_j > count_j_i) {
           duel_matrix[i, j] <- 1
         }
@@ -120,12 +122,13 @@ condorcet <- function(preference_matrix) {
   print(duel_matrix)
   # Vérifie s'il y a un vainqueur de Condorcet
   row_sums <- rowSums(duel_matrix)
-  condorcet_winner <- NULL
+  winner <- NULL
   if (any(row_sums == n-1)) {
-    condorcet_winner <- which(row_sums == max(row_sums))
+    winner_idx <- which(row_sums == max(row_sums))
+    winner <- candidates_names[winner_idx]
   }
   # Renvoie le vainqueur de Condorcet ou NULL s'il n'y en a pas
-  return(condorcet_winner)
+  return(winner)
 }
 
 
@@ -157,9 +160,10 @@ copeland <- function(preference_matrix) {
   }
   print(scores)
 
-  winners <- which(scores == max(scores))
-  if (length(winners) == 1) {
-    return(winners)
+  winner_idx <- which(scores == max(scores))
+  winner <- candidates_names[winner_idx]
+  if (length(winner) == 1) {
+    return(winner)
   } else {
     return(NULL)
   }
@@ -195,12 +199,8 @@ minimax <- function(preference_matrix) {
   rows_greater_than_half <- apply(duel_matrix, 1, function(row) all(row > n_voter/2))
   cols_less_than_half <- apply(duel_matrix, 2, function(col) all(col < n_voter/2))
   if (any(rows_greater_than_half == TRUE)) {
-    #print("plus grand Condorcet")
-    #print(rows_greater_than_half)
     winner <- rows_greater_than_half
   }else if(any(cols_less_than_half == TRUE)){
-    #print("plus petit Condorcet")
-    #print(cols_less_than_half)
     winner <- cols_less_than_half
   }else{
     # sinon le moins pire des valeurs
@@ -289,20 +289,20 @@ bucklin <- function(pref_matrix) {
 
     # Trouver les candidats ayant obtenu une majorité
     majority_candidates <- which(candidate_votes > majority_threshold)
-    print("candidats majoritaires :")
-    print(majority_candidates)
-
+    #print("candidats majoritaires :")
+    #print(majority_candidates)
     if (length(majority_candidates) > 0) {
       # S'il y a un seul candidat avec une majorité, il est élu
       if (length(majority_candidates) == 1) {
-        winner <- majority_candidates
+        winner <- remaining_candidates[majority_candidates]
         return(winner)
       } else {
         # Sinon, trouver le candidat avec la plus grande majorité
         max_vote <- max(candidate_votes[majority_candidates])
         max_candidates <- which(candidate_votes == max_vote)
         # peut y avoir égalité parfaite
-        winner <- max_candidates
+        winner <- remaining_candidates[max_candidates]
+        #winner <- max_candidates
         return(winner)
       }
     }
@@ -346,8 +346,8 @@ nanson <- function(pref_matrix) {
       remaining_candidates <- setdiff(remaining_candidates, eliminated_candidates)
       pref_matrix <- reallocate_points(pref_matrix,eliminated_candidates)
 
-      print("remainning : ")
-      print(remaining_candidates)
+      #print("remainning : ")
+      #print(remaining_candidates)
 
       # test égalité :
       draw <- draw_test(pref_matrix,remaining_candidates)
@@ -394,7 +394,8 @@ range_voting <- function(situation) {
   print(candidate_votes)
   print(candidate_votes/n_voter)
   res <- candidate_votes/n_voter
-  winner <- which(res == max(res))
+  winner_idx <- which(res == max(res))
+  winner <- names(candidate_votes)[winner_idx]
   return(winner)
 }
 
@@ -426,7 +427,7 @@ majority_jugement <- function(situation) {
       candidate_votes[[i]][[indice_seuil]] <- candidate_votes[[i]][[indice_seuil]] + 1
     }
   }
-  # Comptage les votes
+  # Comptage des votes
   res_votes <- list()
   for (i in 1:n_candidate){
     cpt <- 1
@@ -444,7 +445,7 @@ majority_jugement <- function(situation) {
   max_notes <- -Inf  # Valeur minimale initiale pour les notes
   max_vote_count <- -Inf  # Valeur minimale initiale pour les votes
   indice_max <- NULL
-  # Parcourir la liste res_votes
+  # Parcourir la liste des résultats
   for (i in 1:length(res_votes)) {
     # Extraire les valeurs de notes et vote_count
     current_notes <- res_votes[[i]][1]
@@ -518,7 +519,8 @@ approbal <- function(situation, mode = "fixe") {
     print(candidate_votes)
   }
   # Retourne le(s) candidat(s) ayant obtenu le plus grand nombre d'approbations
-  winner <- which(candidate_votes == max(candidate_votes))
+  winner_idx <- which(candidate_votes == max(candidate_votes))
+  winner <- names(candidate_votes)[winner_idx]
   return(winner)
 }
 

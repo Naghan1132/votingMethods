@@ -107,7 +107,6 @@ draw_test <- function(pref_matrix,remaining_candidates){
   }else{
     return(TRUE)
   }
-  print(draw)
   return(draw)
 }
 
