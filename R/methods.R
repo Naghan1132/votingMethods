@@ -411,23 +411,46 @@ majority_jugement <- function(situation) {
   n_candidate <- nrow(situation)
   n_voter <- ncol(situation)
 
+  medianne <- ifelse(n_voter %% 2 == 0, n_voter/2, (n_voter+1)/2)
+  print(medianne)
 
   seuils <- c(0,2,4,6,7,8,9)
   notes <- rep(1:7,1)
-
   candidate_votes <- lapply(1:n_candidate, function(x) rep(0,length(notes)))
 
+  # attribution des évaluations
   for (i in 1:n_candidate){
     for(j in 1:n_voter){
       seuil <- tail(seuils[seuils <= 10*situation[i,j]],1) # 10* car préfs entre 0 et 1
       indice_seuil <- which(seuils == seuil)
-      print(10*situation[i,j])
-      print(indice_seuil)
-
+      #print(10*situation[i,j])
+      #print(indice_seuil)
       candidate_votes[[i]][[indice_seuil]] <- candidate_votes[[i]][[indice_seuil]] + 1
     }
   }
-  print(candidate_votes)
+  # comptage les votes
+  res_votes <- rep(0,n_candidate)
+  for (i in 1:n_candidate){
+    print(candidate_votes[[i]])
+    cpt <- 1
+    vote_count <-0
+    for(j in candidate_votes[[i]]){
+      vote_count <- vote_count + j
+      if(vote_count >= medianne){
+        print(vote_count)
+        print(notes[cpt])
+        # stocker dans un truc
+        res_votes[[i]] <- c(notes[cpt],vote_count)
+        print(res_votes[[i]])
+        break
+      }
+      cpt <- cpt + 1
+    }
+  }
+  print(res_votes)
+  # vérif
+  remainning_candidates <- rep(1,n_candidate)
+
   #print(candidate_votes/n_voter)
   #res <- candidate_votes/n_voter
   #winner <- which(res == max(res))
