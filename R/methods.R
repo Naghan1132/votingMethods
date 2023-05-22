@@ -17,7 +17,7 @@
 # Kemeny ? (pas utile)
 
 # ==== Vote par évaluation ====
-# Vote à la moyenne OK
+# Vote à la moyenne / Range Voting OK
 # Jugement Majoritaire OK
 # Approbation OK -- Refonte OK
 
@@ -32,7 +32,7 @@
 #' @param n_round int
 #' @returns winner_idx
 uninominal <- function(situation, n_round = 1) {
-  set.seed(2023)
+  ##set.seed(2023)
   # Calculer le nombre de candidats et de votants
   n_candidates <- nrow(situation)
   n_voters <- ncol(situation)
@@ -53,6 +53,9 @@ uninominal <- function(situation, n_round = 1) {
     # Vote uninominal à un tour : trouver le candidat avec le plus de voix et retourner son indice
     winner_idx <- which(vote_counts == max(vote_counts)) # pour gérer les égalités
     winner <- candidates_names[winner_idx]
+    if(length(winner) > 1){
+      winner <- NULL
+    }
     return(winner)
   } else if(n_round == 2) {
     # Vote uninominal à deux tours
@@ -79,7 +82,7 @@ uninominal <- function(situation, n_round = 1) {
 #' @returns winner
 #' @export
 borda <- function(situation) {
-  set.seed(2023)
+  #set.seed(2023)
   candidates_names <- rownames(situation)
   situation <- preferences_to_borda_points(situation)
   # Calculer le total de chaque ligne
@@ -88,6 +91,9 @@ borda <- function(situation) {
   # Retourner tous les indices des lignes ayant un total maximal
   winner_idx <- which(totaux == max(totaux))
   winner <- candidates_names[winner_idx]
+  if(length(winner) > 1){
+    return(NULL)
+  }
   return(winner)
 }
 
@@ -96,7 +102,7 @@ borda <- function(situation) {
 #' @param preference_matrix voters preferences
 #' @return winner, can be NULL
 condorcet <- function(preference_matrix) {
-  set.seed(2023)
+  #set.seed(2023)
   candidates_names <- rownames(preference_matrix)
   n <- nrow(preference_matrix)
   preference_matrix <- preferences_to_ranks(preference_matrix)
@@ -135,7 +141,7 @@ condorcet <- function(preference_matrix) {
 #' @param preference_matrix voters preferences
 #' @return winner, can be NULL
 copeland <- function(preference_matrix) {
-  set.seed(2023)
+  #set.seed(2023)
   n <- nrow(preference_matrix)
   preference_matrix <- preferences_to_ranks(preference_matrix)
   candidates_names <- rownames(preference_matrix)
@@ -173,7 +179,7 @@ copeland <- function(preference_matrix) {
 #' @param preference_matrix voters preferences
 #' @return winner, can be NULL
 minimax <- function(preference_matrix) {
-  set.seed(2023)
+  #set.seed(2023)
   n <- nrow(preference_matrix)
   n_voter <- ncol(preference_matrix)
   preference_matrix <- preferences_to_ranks(preference_matrix)
@@ -216,7 +222,9 @@ minimax <- function(preference_matrix) {
     row_with_highest_worst_value <- which.max(row_worst_values) # gérer les égalités ??
     winner <- row_with_highest_worst_value
   }
-
+  if(length(candidates_names[winner]) > 1){
+    return(NULL)
+  }
   return(candidates_names[winner])
 }
 
@@ -226,7 +234,7 @@ minimax <- function(preference_matrix) {
 #' @param pref_matrix voters preferences
 #' @returns remaining_candidates
 successif_elimination <- function(pref_matrix) {
-  set.seed(2023)
+  #set.seed(2023)
   pref_matrix <- preferences_to_ranks(pref_matrix)
   num_candidates <- nrow(pref_matrix)
   remaining_candidates <- rownames(pref_matrix)
@@ -243,7 +251,7 @@ successif_elimination <- function(pref_matrix) {
     longueurUnique <- length(egalite)
     if(longueurUnique == 1){
       # == ÉGALITÉ ==
-      return(remaining_candidates)
+      return(NULL)
     }
     # Éliminer le(s) candidat(s) ayant le moins de voix
     min_votes <- min(candidate_votes[remaining_candidates])
@@ -262,7 +270,7 @@ successif_elimination <- function(pref_matrix) {
 #' @param pref_matrix voters preferences
 #' @returns winner
 bucklin <- function(pref_matrix) {
-  set.seed(2023)
+  #set.seed(2023)
   pref_matrix <- preferences_to_ranks(pref_matrix)
   num_voters <- ncol(pref_matrix)
   num_candidates <- nrow(pref_matrix)
@@ -300,6 +308,9 @@ bucklin <- function(pref_matrix) {
         max_candidates <- which(candidate_votes == max_vote)
         # peut y avoir égalité parfaite
         winner <- remaining_candidates[max_candidates]
+        if(length(winner) != 1){
+          winner <- NULL
+        }
         #winner <- max_candidates
         return(winner)
       }
@@ -314,7 +325,7 @@ bucklin <- function(pref_matrix) {
 #' @param pref_matrix voters preferences
 #' @returns remaining_candidates
 nanson <- function(pref_matrix) {
-  set.seed(2023)
+  #set.seed(2023)
   n_candidats <- nrow(pref_matrix)
   n_voters <- ncol(pref_matrix)
   ##View(pref_matrix)
@@ -352,6 +363,9 @@ nanson <- function(pref_matrix) {
     }
   }
   # =====
+  if(length(remaining_candidates) > 1){
+    return(NULL)
+  }
   return(remaining_candidates)
 }
 
@@ -361,7 +375,7 @@ nanson <- function(pref_matrix) {
 #' @param pref_matrix voters preferences
 #' @returns remaining_candidates
 kemeny <- function(pref_matrix) {
-  set.seed(2023)
+  #set.seed(2023)
   # WARNING :
   # il y a 3 628 800 ordres
   # possibles pour 10 candidats et plus de 2 milliards de milliards pour 20
@@ -378,7 +392,7 @@ kemeny <- function(pref_matrix) {
 #' @param situation voters preferences
 #' @returns winner
 range_voting <- function(situation) {
-  set.seed(2023)
+  #set.seed(2023)
   n_candidate <- nrow(situation)
   n_voter <- ncol(situation)
   candidate_votes <- rep(0, n_candidate)
@@ -394,6 +408,9 @@ range_voting <- function(situation) {
   print(candidate_votes/n_voter)
   res <- candidate_votes/n_voter
   winner_idx <- which(res == max(res))
+  if(length(winner_idx) > 1){
+    return(NULL)
+  }
   winner <- names(candidate_votes)[winner_idx]
   return(winner)
 }
@@ -403,7 +420,7 @@ range_voting <- function(situation) {
 #' @param situation voters preferences
 #' @returns winner
 majority_jugement <- function(situation) {
-  set.seed(2023)
+  #set.seed(2023)
   #  À rejeter, Insuffisant, Passable, Assez Bien,  Bien,   Très Bien,  Excellent
   #     < 0        < 2        < 4        < 6         < 7       < 8         9
   #   1 point   2 points    3 points   4 points    5 points  6 points   7 points
@@ -412,7 +429,7 @@ majority_jugement <- function(situation) {
   n_voter <- ncol(situation)
 
   medianne <- ifelse(n_voter %% 2 == 0, n_voter/2, (n_voter+1)/2)
-  print(medianne)
+  #print(medianne)
 
   seuils <- c(0,2,4,6,7,8,9)
   notes <- rep(1:7,1)
@@ -440,7 +457,7 @@ majority_jugement <- function(situation) {
       cpt <- cpt + 1
     }
   }
-  print(res_votes)
+  #print(res_votes)
   max_notes <- -Inf  # Valeur minimale initiale pour les notes
   max_vote_count <- -Inf  # Valeur minimale initiale pour les votes
   indice_max <- NULL
@@ -464,8 +481,8 @@ majority_jugement <- function(situation) {
     }
   }
 
-  print(indice_max)
-  print(max_vote_count)
+  #print(indice_max)
+  #print(max_vote_count)
   winner <- rownames(situation)[indice_max]
   return(winner)
 }
@@ -480,7 +497,7 @@ library("utils")
 #' @import utils
 #' @returns winner
 approbal <- function(situation, mode = "fixe") {
-  set.seed(2023)
+  ##set.seed(2023)
   n_candidate <- nrow(situation)
   n_voter <- ncol(situation)
   candidate_votes <- rep(0, n_candidate)
@@ -519,6 +536,9 @@ approbal <- function(situation, mode = "fixe") {
   }
   # Retourne le(s) candidat(s) ayant obtenu le plus grand nombre d'approbations
   winner_idx <- which(candidate_votes == max(candidate_votes))
+  if(length(winner_idx) > 1){
+    return(NULL)
+  }
   winner <- names(candidate_votes)[winner_idx]
   return(winner)
 }
