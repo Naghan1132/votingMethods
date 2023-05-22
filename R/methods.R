@@ -5,6 +5,7 @@
 #   uninominal_vote(generate_beta(10,3))
 
 # ==== Vote ordre de préférences ====
+# Condorcet OK
 # Uninomial 1T OK -- Refonte OK
 # Uninomial 2T OK -- Refonte OK
 # Elination successive OK -- Refonte OK
@@ -21,9 +22,6 @@
 # Approbation OK -- Refonte OK
 
 
-# Condorcet OK
-
-
 # ==== ==== ==== ==== ==== ==== ==== ==== ==== ====
 
 
@@ -34,7 +32,7 @@
 #' @param n_round int
 #' @returns winner_idx
 uninominal <- function(situation, n_round = 1) {
-  situation <- rename_rows(situation)
+  set.seed(2023)
   # Calculer le nombre de candidats et de votants
   n_candidates <- nrow(situation)
   n_voters <- ncol(situation)
@@ -81,7 +79,7 @@ uninominal <- function(situation, n_round = 1) {
 #' @returns winner
 #' @export
 borda <- function(situation) {
-  situation <- rename_rows(situation)
+  set.seed(2023)
   candidates_names <- rownames(situation)
   situation <- preferences_to_borda_points(situation)
   # Calculer le total de chaque ligne
@@ -98,7 +96,7 @@ borda <- function(situation) {
 #' @param preference_matrix voters preferences
 #' @return winner, can be NULL
 condorcet <- function(preference_matrix) {
-  preference_matrix <- rename_rows(preference_matrix)
+  set.seed(2023)
   candidates_names <- rownames(preference_matrix)
   n <- nrow(preference_matrix)
   preference_matrix <- preferences_to_ranks(preference_matrix)
@@ -137,9 +135,9 @@ condorcet <- function(preference_matrix) {
 #' @param preference_matrix voters preferences
 #' @return winner, can be NULL
 copeland <- function(preference_matrix) {
+  set.seed(2023)
   n <- nrow(preference_matrix)
   preference_matrix <- preferences_to_ranks(preference_matrix)
-  preference_matrix <- rename_rows(preference_matrix)
   candidates_names <- rownames(preference_matrix)
   scores <- rep(0, length(candidates_names))
   names(scores) <- candidates_names
@@ -175,10 +173,10 @@ copeland <- function(preference_matrix) {
 #' @param preference_matrix voters preferences
 #' @return winner, can be NULL
 minimax <- function(preference_matrix) {
+  set.seed(2023)
   n <- nrow(preference_matrix)
   n_voter <- ncol(preference_matrix)
   preference_matrix <- preferences_to_ranks(preference_matrix)
-  preference_matrix <- rename_rows(preference_matrix)
   candidates_names <- rownames(preference_matrix)
   # Calcule les distances entre chaque paire de candidats - matrice de duels
   duel_matrix <- matrix(0, n, n)
@@ -228,8 +226,8 @@ minimax <- function(preference_matrix) {
 #' @param pref_matrix voters preferences
 #' @returns remaining_candidates
 successif_elimination <- function(pref_matrix) {
+  set.seed(2023)
   pref_matrix <- preferences_to_ranks(pref_matrix)
-  pref_matrix <- rename_rows(pref_matrix)
   num_candidates <- nrow(pref_matrix)
   remaining_candidates <- rownames(pref_matrix)
   print(pref_matrix)
@@ -264,8 +262,8 @@ successif_elimination <- function(pref_matrix) {
 #' @param pref_matrix voters preferences
 #' @returns winner
 bucklin <- function(pref_matrix) {
+  set.seed(2023)
   pref_matrix <- preferences_to_ranks(pref_matrix)
-  pref_matrix <- rename_rows(pref_matrix)
   num_voters <- ncol(pref_matrix)
   num_candidates <- nrow(pref_matrix)
   remaining_candidates <- rownames(pref_matrix)
@@ -316,11 +314,11 @@ bucklin <- function(pref_matrix) {
 #' @param pref_matrix voters preferences
 #' @returns remaining_candidates
 nanson <- function(pref_matrix) {
+  set.seed(2023)
   n_candidats <- nrow(pref_matrix)
   n_voters <- ncol(pref_matrix)
   ##View(pref_matrix)
   pref_matrix <- preferences_to_borda_points(pref_matrix)
-  pref_matrix <- rename_rows(pref_matrix)
   remaining_candidates <- rownames(pref_matrix)
   draw <- FALSE
   # tester si vainqueur de Condorcet ! sinon procédure =>
@@ -363,6 +361,7 @@ nanson <- function(pref_matrix) {
 #' @param pref_matrix voters preferences
 #' @returns remaining_candidates
 kemeny <- function(pref_matrix) {
+  set.seed(2023)
   # WARNING :
   # il y a 3 628 800 ordres
   # possibles pour 10 candidats et plus de 2 milliards de milliards pour 20
@@ -379,7 +378,7 @@ kemeny <- function(pref_matrix) {
 #' @param situation voters preferences
 #' @returns winner
 range_voting <- function(situation) {
-  situation <- rename_rows(situation)
+  set.seed(2023)
   n_candidate <- nrow(situation)
   n_voter <- ncol(situation)
   candidate_votes <- rep(0, n_candidate)
@@ -404,11 +403,11 @@ range_voting <- function(situation) {
 #' @param situation voters preferences
 #' @returns winner
 majority_jugement <- function(situation) {
+  set.seed(2023)
   #  À rejeter, Insuffisant, Passable, Assez Bien,  Bien,   Très Bien,  Excellent
   #     < 0        < 2        < 4        < 6         < 7       < 8         9
   #   1 point   2 points    3 points   4 points    5 points  6 points   7 points
 
-  situation <- rename_rows(situation)
   n_candidate <- nrow(situation)
   n_voter <- ncol(situation)
 
@@ -481,7 +480,7 @@ library("utils")
 #' @import utils
 #' @returns winner
 approbal <- function(situation, mode = "fixe") {
-  situation <- rename_rows(situation)
+  set.seed(2023)
   n_candidate <- nrow(situation)
   n_voter <- ncol(situation)
   candidate_votes <- rep(0, n_candidate)
