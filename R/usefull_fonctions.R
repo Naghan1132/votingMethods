@@ -110,7 +110,18 @@ draw_test <- function(pref_matrix,remaining_candidates){
   return(draw)
 }
 
+duel_matrix <- function(situation){
+  n <- nrow(situation)
+  matrix <- matrix(0, n, n)
+  for (i in 1:n) {
+    for (j in 1:n) {
+      if (i != j) {
 
+      }
+    }
+  }
+  return(NULL)
+}
 
 
 

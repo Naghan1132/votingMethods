@@ -32,14 +32,14 @@
 #' @import nnet
 #' @returns winner_idx
 uninominal <- function(situation, n_round = 1) {
-  if(n_round != 1 | n_round != 2){
+  if(!(n_round == 1 | n_round == 2)){
     stop("Number of rounds must be 1 or 2")
   }
   n_voters <- ncol(situation)
   # Initialiser le vecteur de voix pour chaque candidat
   candidates_names <- rownames(situation)
-  vote_counts <- table(rownames(situation)[apply(situation, 2, which.max)])
-  winner <- names(vote_counts)[which.is.max(vote_counts)] # s'occupe de l'égalité => random
+  vote_counts <- table(rownames(situation)[apply(situation, 2, which.is.max)])
+  winner <- names(vote_counts)[which.is.max(vote_counts)]
   if(n_round == 2) {
     # Vote uninominal à deux tours
     if(max(vote_counts) / n_voters < 0.5) {
@@ -47,7 +47,7 @@ uninominal <- function(situation, n_round = 1) {
       top2_indices <- names(vote_counts)[order(vote_counts, decreasing = TRUE)[1:2]]
       situation2 <- situation[top2_indices,]
       winner <- uninominal(situation2, n_round = 1)
-      }
+    }
   }
   return(winner)
 }
@@ -114,12 +114,13 @@ condorcet <- function(preference_matrix) {
 #' @param preference_matrix voters preferences
 #' @return winner, can be NULL
 copeland <- function(preference_matrix) {
-  #set.seed(2023)
   n <- nrow(preference_matrix)
   preference_matrix <- preferences_to_ranks(preference_matrix)
   candidates_names <- rownames(preference_matrix)
   scores <- rep(0, length(candidates_names))
   names(scores) <- candidates_names
+  vote_counts <- table(rownames(preference_matrix)[apply(preference_matrix, 2, which.max)])
+
   for (i in 1:(n - 1)) {
     for (j in (i + 1):n) {
       #saplly pas for !!!
@@ -136,14 +137,8 @@ copeland <- function(preference_matrix) {
     }
   }
   print(scores)
-
-  winner_idx <- which(scores == max(scores))
-  winner <- candidates_names[winner_idx]
-  if (length(winner) == 1) {
-    return(winner)
-  } else {
-    return(NULL)
-  }
+  winner <- rownames(preference_matrix)[which.is.max(scores)]
+  return(winner)
 }
 
 
@@ -210,10 +205,10 @@ minimax <- function(preference_matrix) {
 #' @param pref_matrix voters preferences
 #' @returns remaining_candidates
 successif_elimination <- function(pref_matrix) {
-  #set.seed(2023)
   pref_matrix <- preferences_to_ranks(pref_matrix)
   num_candidates <- nrow(pref_matrix)
-  remaining_candidates <- rownames(pref_matrix)
+  remaining_candidates <- table(rownames(pref_matrix))
+  print(remaining_candidates)
   print(pref_matrix)
   while (length(remaining_candidates) > 1) {
     # Calculer le total de voix pour chaque candidat restant
