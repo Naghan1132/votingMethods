@@ -2,7 +2,7 @@
 % Please edit documentation in R/methods.R
 \name{bucklin}
 \alias{bucklin}
-\title{Bulkin method}
+\title{Bucklin method}
 \usage{
 bucklin(pref_matrix)
 }
@@ -13,5 +13,5 @@ bucklin(pref_matrix)
 winner
 }
 \description{
-Bulkin method
+Bucklin method
 }

@@ -9,6 +9,7 @@ License: GPL-3
 Encoding: UTF-8
 URL : https://github.com/Naghan1132/votingMethods
 LazyData: true
+Imports: nnet
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3

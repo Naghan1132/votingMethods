@@ -5,21 +5,20 @@
 #   uninominal_vote(generate_beta(10,3))
 
 # ==== Vote ordre de préférences ====
-# Condorcet OK
-# Uninomial 1T OK -- Refonte OK
-# Uninomial 2T OK -- Refonte OK
-# Elination successive OK -- Refonte OK
-# Bucklin OK -- Refonte OK
-# Borda OK -- Refonte OK
-# Nanson OK -- Refonte OK
-# Minimax OK -- Refonte OK
-# Copeland OK -- Refonte OK
-# Kemeny ? (pas utile)
+# Condorcet
+# Uninomial 1T
+# Uninomial 2T
+# Elination successive
+# Bucklin
+# Borda
+# Nanson
+# Minimax
+# Copeland
 
 # ==== Vote par évaluation ====
-# Vote à la moyenne / Range Voting OK
-# Jugement Majoritaire OK
-# Approbation OK -- Refonte OK
+# Vote à la moyenne / Range Voting
+# Jugement Majoritaire
+# Approbation
 
 
 # ==== ==== ==== ==== ==== ==== ==== ==== ==== ====
@@ -30,50 +29,27 @@
 #' @export
 #' @param situation voters preferences
 #' @param n_round int
+#' @import nnet
 #' @returns winner_idx
 uninominal <- function(situation, n_round = 1) {
-  #set.seed(2023)
-  # Calculer le nombre de candidats et de votants
-  n_candidates <- nrow(situation)
+  if(n_round != 1 | n_round != 2){
+    stop("Number of rounds must be 1 or 2")
+  }
   n_voters <- ncol(situation)
   # Initialiser le vecteur de voix pour chaque candidat
   candidates_names <- rownames(situation)
-  vote_counts <- rep(0, length(candidates_names))
-  names(vote_counts) <- candidates_names
-
-  # Pour chaque votant, trouver le candidat préféré et ajouter une voix pour ce candidat
-  for (i in 1:n_voters) {
-    # Trouver l'indice du candidat préféré du votant i sur la colonne i
-    fav_candidate <- which.max(situation[, i])
-    # Ajouter une voix pour le candidat préféré du votant i
-    vote_counts[fav_candidate] <- vote_counts[fav_candidate] + 1
-  }
-  print(vote_counts)
-  if(n_round == 1) {
-    # Vote uninominal à un tour : trouver le candidat avec le plus de voix et retourner son indice
-    winner_idx <- which(vote_counts == max(vote_counts)) # pour gérer les égalités
-    winner <- candidates_names[winner_idx]
-    if(length(winner) > 1){
-      winner <- NULL
-    }
-    return(winner)
-  } else if(n_round == 2) {
+  vote_counts <- table(rownames(situation)[apply(situation, 2, which.max)])
+  winner <- names(vote_counts)[which.is.max(vote_counts)] # s'occupe de l'égalité random
+  if(n_round == 2) {
     # Vote uninominal à deux tours
-    winner_idx <- which.max(vote_counts)
-    winner <- candidates_names[winner_idx]
-    if(vote_counts[winner_idx] / n_voters < 0.5) {
-      # Si aucun candidat n'a la majorité absolue,on passe au second tour
-      top2_indices <- order(vote_counts, decreasing = TRUE)[1:2]
+    if(max(vote_counts) / n_voters < 0.5) {
+      # Si aucun candidat n'a la majorité absolue, on passe au second tour
+      top2_indices <- names(vote_counts)[order(vote_counts, decreasing = TRUE)[1:2]]
       situation2 <- situation[top2_indices,]
-      winner2 <- uninominal(situation2, n_round = 1)
-      return(winner2)
-    } else {
-      # Sinon, le premier candidat est élu
-      return(winner)
-    }
-  } else {
-    stop("Number of rounds must be 1 or 2")
-    }
+      winner <- uninominal(situation2, n_round = 1)
+      }
+  }
+  return(winner)
 }
 
 
@@ -112,6 +88,9 @@ condorcet <- function(preference_matrix) {
     for (j in 1:n) {
       if (i != j) {
         count_i_j <- sum(preference_matrix[i, ] < preference_matrix[j, ])
+        # créer fonction matrice duels (sapply ? )
+        # fonction condorcet vainqueur  etc....
+
         count_j_i <- sum(preference_matrix[i, ] > preference_matrix[j, ])
         if (count_i_j > count_j_i) {
           duel_matrix[i, j] <- 1
@@ -146,9 +125,9 @@ copeland <- function(preference_matrix) {
   candidates_names <- rownames(preference_matrix)
   scores <- rep(0, length(candidates_names))
   names(scores) <- candidates_names
-  print(scores)
   for (i in 1:(n - 1)) {
     for (j in (i + 1):n) {
+      #saplly pas for !!!
       wins_i <- sum(preference_matrix[i,] < preference_matrix[j,])
       wins_j <- sum(preference_matrix[i,] > preference_matrix[j,])
       if (wins_i == wins_j) {
@@ -181,7 +160,7 @@ minimax <- function(preference_matrix) {
   #set.seed(2023)
   n <- nrow(preference_matrix)
   n_voter <- ncol(preference_matrix)
-  preference_matrix <- preferences_to_ranks(preference_matrix)
+  preference_matrix <- preferences_to_ranks(preference_matrix) #score_to_pref() à mettre random (rank)
   candidates_names <- rownames(preference_matrix)
   # Calcule les distances entre chaque paire de candidats - matrice de duels
   duel_matrix <- matrix(0, n, n)
@@ -218,7 +197,10 @@ minimax <- function(preference_matrix) {
         }
       }
     }
-    row_with_highest_worst_value <- which.max(row_worst_values) # gérer les égalités ??
+    print(row_worst_values)
+    # prendre ssl le score max de tous les duels perdus pour chaque candidat, dont moins n_v/2
+    # et la prendre le min
+    row_with_highest_worst_value <- which.max(row_worst_values) # égalité, remplacer par which is max
     winner <- row_with_highest_worst_value
   }
   if(length(candidates_names[winner]) > 1){
@@ -244,6 +226,7 @@ successif_elimination <- function(pref_matrix) {
     names(candidate_votes) <- remaining_candidates
     for (i in remaining_candidates) {
       candidate_votes[i] <- sum(pref_matrix[i,] == 1) # on choisit le candidat pref de chaque votant
+      #remplacer == 1 par which is min, et donc aps de realocate
     }
     egalite <- unique(candidate_votes[remaining_candidates])
     # Vérifier si la liste d'entiers contient une seule valeur unique
@@ -254,7 +237,7 @@ successif_elimination <- function(pref_matrix) {
     }
     # Éliminer le(s) candidat(s) ayant le moins de voix
     min_votes <- min(candidate_votes[remaining_candidates])
-    eliminated_indices <- which(candidate_votes == min_votes)
+    eliminated_indices <- which(candidate_votes == min_votes)# which is min => nnet
     eliminated_candidates <- rownames(pref_matrix)[eliminated_indices]
     remaining_candidates <- setdiff(remaining_candidates, eliminated_candidates)
 
@@ -264,7 +247,7 @@ successif_elimination <- function(pref_matrix) {
   return(remaining_candidates)
 }
 
-#' Bulkin method
+#' Bucklin method
 #' @export
 #' @param pref_matrix voters preferences
 #' @returns winner
@@ -294,6 +277,7 @@ bucklin <- function(pref_matrix) {
 
     # Trouver les candidats ayant obtenu une majorité
     majority_candidates <- which(candidate_votes > majority_threshold)
+
     #print("candidats majoritaires :")
     #print(majority_candidates)
     if (length(majority_candidates) > 0) {
@@ -314,7 +298,7 @@ bucklin <- function(pref_matrix) {
         return(winner)
       }
     }
-    n_round <- n_round +1
+    n_round <- n_round + 1
   }
   return(winner)
 }
@@ -334,7 +318,7 @@ nanson <- function(pref_matrix) {
   # tester si vainqueur de Condorcet ! sinon procédure =>
   condorcet <- condorcet(pref_matrix)
   if(!is.null(condorcet)){
-    print("Gagnant de Condorcet !")
+    print("Gagnant de Condorcet !") # pas besoin de check condorcet !
     return(condorcet)
   }else{
     while(length(remaining_candidates) > 2 | !draw){
@@ -369,18 +353,6 @@ nanson <- function(pref_matrix) {
 }
 
 
-#' kemeny method
-#' @export
-#' @param pref_matrix voters preferences
-#' @returns remaining_candidates
-kemeny <- function(pref_matrix) {
-  # WARNING :
-  # il y a 3 628 800 ordres possibles pour 10 candidats
-  # et plus de 2 milliards de milliards pour 20 candidats !!
-  # ordres de pref inversé, calcul nombre inversions
-  pref_matrix <- preferences_to_ranks(pref_matrix)
-}
-
 
 # ==== VOTE PAR ÉVALUATION ====
 
@@ -397,7 +369,7 @@ range_voting <- function(situation) {
   seuil <- c(0,1,2,3,4,5,6,7,8,9)
   for (i in 1:n_candidate){
     for(j in 1:n_voter){
-      note <- tail(seuil[seuil <= 10*situation[i,j]],1) # 10* car préfs entre 0 et 1
+      note <- tail(seuil[seuil <= 10*situation[i,j]],1) # 10* car préfs entre 0 et 1 # faire un max(apply(mean(situation)))
       #print(note)
       candidate_votes[i] <- candidate_votes[i] + note
     }
@@ -511,6 +483,7 @@ approval <- function(situation, mode = "fixe") {
       n_appro <- round(n_candidate/2 - 2)
     }
     for(i in 1:n_voter){
+      # apply
       indices_lignes <- tail(order(situation[,i]), n_appro)
       candidate_votes[indices_lignes] <- candidate_votes[indices_lignes] + 1
     }
@@ -540,5 +513,14 @@ approval <- function(situation, mode = "fixe") {
   return(winner)
 }
 
-
+# fonction v/p condorcet
+# fonction matrice de duels
+# apply / sapply
+# uniformiser le code
+# clean
+# full anglais
+# rank => random
+# which.is.min()  / max()  ! nnet
+# score_to_rank dans autre package plutot
+# pas besoin de re-allocate pref ?
 
