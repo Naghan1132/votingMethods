@@ -37,8 +37,8 @@ uninominal <- function(situation, n_round = 1) {
   }
   n_voters <- ncol(situation)
   # Initialiser le vecteur de voix pour chaque candidat
-  candidates_names <- rownames(situation)
   vote_counts <- table(rownames(situation)[apply(situation, 2, which.is.max)])
+  print(vote_counts)
   winner <- names(vote_counts)[which.is.max(vote_counts)]
   if(n_round == 2) {
     # Vote uninominal à deux tours
@@ -204,37 +204,19 @@ minimax <- function(preference_matrix) {
 #' @export
 #' @param pref_matrix voters preferences
 #' @returns remaining_candidates
-successif_elimination <- function(pref_matrix) {
-  pref_matrix <- preferences_to_ranks(pref_matrix)
-  num_candidates <- nrow(pref_matrix)
-  remaining_candidates <- table(rownames(pref_matrix))
-  print(remaining_candidates)
-  print(pref_matrix)
-  while (length(remaining_candidates) > 1) {
-    # Calculer le total de voix pour chaque candidat restant
-    candidate_votes <- rep(0, length(remaining_candidates))
-    names(candidate_votes) <- remaining_candidates
-    for (i in remaining_candidates) {
-      candidate_votes[i] <- sum(pref_matrix[i,] == 1) # on choisit le candidat pref de chaque votant
-      #remplacer == 1 par which is min, et donc aps de realocate
-    }
-    egalite <- unique(candidate_votes[remaining_candidates])
-    # Vérifier si la liste d'entiers contient une seule valeur unique
-    longueurUnique <- length(egalite)
-    if(longueurUnique == 1){
-      # == ÉGALITÉ ==
-      return(NULL)
-    }
-    # Éliminer le(s) candidat(s) ayant le moins de voix
-    min_votes <- min(candidate_votes[remaining_candidates])
-    eliminated_indices <- which(candidate_votes == min_votes)# which is min => nnet
-    eliminated_candidates <- rownames(pref_matrix)[eliminated_indices]
-    remaining_candidates <- setdiff(remaining_candidates, eliminated_candidates)
-
-    # Redistribuer les préférences des votants pour prendre en compte l'élimination du candidat
-    pref_matrix <- reallocate_preferences(pref_matrix,eliminated_candidates)
+successif_elimination <- function(pref_matrix, first_it = TRUE) {
+  if(first_it){
+    pref_matrix <- preferences_to_ranks(pref_matrix)
   }
-  return(remaining_candidates)
+  print(pref_matrix)
+  table <- table(rownames(pref_matrix)[apply(pref_matrix, 2, which.min)])
+  print(table)
+  if(length(table) == 2){
+    return(names(table)[which.is.max(table)])
+  }
+  looser <- names(table)[which.min(table)]
+  pref_matrix <- pref_matrix[names(table) != looser, ]
+  successif_elimination(pref_matrix,FALSE)
 }
 
 #' Bucklin method
