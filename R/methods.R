@@ -6,18 +6,18 @@
 
 # ==== Vote ordre de préférences ====
 # Condorcet
-# Uninomial 1T
-# Uninomial 2T
+# Uninomial 1T - OK
+# Uninomial 2T - OK
 # Elination successive
 # Bucklin
-# Borda
+# Borda - OK
 # Nanson
 # Minimax
 # Copeland
 
 # ==== Vote par évaluation ====
 # Vote à la moyenne / Range Voting
-# Jugement Majoritaire
+# Jugement Majoritaire - A VOIR PLUS TARD
 # Approbation
 
 
@@ -39,7 +39,7 @@ uninominal <- function(situation, n_round = 1) {
   # Initialiser le vecteur de voix pour chaque candidat
   candidates_names <- rownames(situation)
   vote_counts <- table(rownames(situation)[apply(situation, 2, which.max)])
-  winner <- names(vote_counts)[which.is.max(vote_counts)] # s'occupe de l'égalité random
+  winner <- names(vote_counts)[which.is.max(vote_counts)] # s'occupe de l'égalité => random
   if(n_round == 2) {
     # Vote uninominal à deux tours
     if(max(vote_counts) / n_voters < 0.5) {
@@ -58,17 +58,12 @@ uninominal <- function(situation, n_round = 1) {
 #' @returns winner
 #' @export
 borda <- function(situation) {
-  candidates_names <- rownames(situation)
   situation <- preferences_to_borda_points(situation)
   # Calculer le total de chaque ligne
   totaux <- rowSums(situation)
   print(totaux)
   # Retourner tous les indices des lignes ayant un total maximal
-  winner_idx <- which(totaux == max(totaux))
-  winner <- candidates_names[winner_idx]
-  if(length(winner) > 1){
-    return(NULL)
-  }
+  winner <- rownames(situation)[which.is.max(totaux)]
   return(winner)
 }
 
