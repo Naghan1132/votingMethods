@@ -54,7 +54,7 @@ uninominal <- function(situation, n_round = 1) {
     winner_idx <- which(vote_counts == max(vote_counts)) # pour gérer les égalités
     winner <- candidates_names[winner_idx]
     if(length(winner) > 1){
-      winner <- NaN
+      winner <- NULL
     }
     return(winner)
   } else if(n_round == 2) {
@@ -82,7 +82,6 @@ uninominal <- function(situation, n_round = 1) {
 #' @returns winner
 #' @export
 borda <- function(situation) {
-  #set.seed(2023)
   candidates_names <- rownames(situation)
   situation <- preferences_to_borda_points(situation)
   # Calculer le total de chaque ligne
@@ -92,7 +91,7 @@ borda <- function(situation) {
   winner_idx <- which(totaux == max(totaux))
   winner <- candidates_names[winner_idx]
   if(length(winner) > 1){
-    return(NaN)
+    return(NULL)
   }
   return(winner)
 }
@@ -100,7 +99,7 @@ borda <- function(situation) {
 #' Condorcet
 #' @export
 #' @param preference_matrix voters preferences
-#' @return winner, can be NaN
+#' @return winner, can be NULL
 condorcet <- function(preference_matrix) {
   #set.seed(2023)
   candidates_names <- rownames(preference_matrix)
@@ -126,12 +125,12 @@ condorcet <- function(preference_matrix) {
   print(duel_matrix)
   # Vérifie s'il y a un vainqueur de Condorcet
   row_sums <- rowSums(duel_matrix)
-  winner <- NaN
+  winner <- NULL
   if (any(row_sums == n-1)) {
     winner_idx <- which(row_sums == max(row_sums))
     winner <- candidates_names[winner_idx]
   }
-  # Renvoie le vainqueur de Condorcet ou NaN s'il n'y en a pas
+  # Renvoie le vainqueur de Condorcet ou NULL s'il n'y en a pas
   return(winner)
 }
 
@@ -139,7 +138,7 @@ condorcet <- function(preference_matrix) {
 #' Copeland procedure
 #' @export
 #' @param preference_matrix voters preferences
-#' @return winner, can be NaN
+#' @return winner, can be NULL
 copeland <- function(preference_matrix) {
   #set.seed(2023)
   n <- nrow(preference_matrix)
@@ -169,7 +168,7 @@ copeland <- function(preference_matrix) {
   if (length(winner) == 1) {
     return(winner)
   } else {
-    return(NaN)
+    return(NULL)
   }
 }
 
@@ -177,7 +176,7 @@ copeland <- function(preference_matrix) {
 #' Minimax procedure
 #' @export
 #' @param preference_matrix voters preferences
-#' @return winner, can be NaN
+#' @return winner, can be NULL
 minimax <- function(preference_matrix) {
   #set.seed(2023)
   n <- nrow(preference_matrix)
@@ -199,7 +198,7 @@ minimax <- function(preference_matrix) {
   print(duel_matrix) # OK
   row_sums <- rowSums(duel_matrix)
   col_sums <- colSums(duel_matrix)
-  # Vainqueur de Condorcet :
+  # Vainqueur de Condorcet : peut-être changer avec la fonction Condorcet ?
   rows_greater_than_half <- apply(duel_matrix, 1, function(row) all(row > n_voter/2))
   cols_less_than_half <- apply(duel_matrix, 2, function(col) all(col < n_voter/2))
   if (any(rows_greater_than_half == TRUE)) {
@@ -223,7 +222,7 @@ minimax <- function(preference_matrix) {
     winner <- row_with_highest_worst_value
   }
   if(length(candidates_names[winner]) > 1){
-    return(NaN)
+    return(NULL)
   }
   return(candidates_names[winner])
 }
@@ -251,7 +250,7 @@ successif_elimination <- function(pref_matrix) {
     longueurUnique <- length(egalite)
     if(longueurUnique == 1){
       # == ÉGALITÉ ==
-      return(NaN)
+      return(NULL)
     }
     # Éliminer le(s) candidat(s) ayant le moins de voix
     min_votes <- min(candidate_votes[remaining_candidates])
@@ -309,7 +308,7 @@ bucklin <- function(pref_matrix) {
         # peut y avoir égalité parfaite
         winner <- remaining_candidates[max_candidates]
         if(length(winner) != 1){
-          winner <- NaN
+          winner <- NULL
         }
         #winner <- max_candidates
         return(winner)
@@ -334,7 +333,7 @@ nanson <- function(pref_matrix) {
   draw <- FALSE
   # tester si vainqueur de Condorcet ! sinon procédure =>
   condorcet <- condorcet(pref_matrix)
-  if(!is.nan(condorcet)){
+  if(!is.null(condorcet)){
     print("Gagnant de Condorcet !")
     return(condorcet)
   }else{
@@ -364,7 +363,7 @@ nanson <- function(pref_matrix) {
   }
   # =====
   if(length(remaining_candidates) > 1){
-    return(NaN)
+    return(NULL)
   }
   return(remaining_candidates)
 }
@@ -375,11 +374,9 @@ nanson <- function(pref_matrix) {
 #' @param pref_matrix voters preferences
 #' @returns remaining_candidates
 kemeny <- function(pref_matrix) {
-  #set.seed(2023)
   # WARNING :
-  # il y a 3 628 800 ordres
-  # possibles pour 10 candidats et plus de 2 milliards de milliards pour 20
-  # candidats !
+  # il y a 3 628 800 ordres possibles pour 10 candidats
+  # et plus de 2 milliards de milliards pour 20 candidats !!
   # ordres de pref inversé, calcul nombre inversions
   pref_matrix <- preferences_to_ranks(pref_matrix)
 }
@@ -401,6 +398,7 @@ range_voting <- function(situation) {
   for (i in 1:n_candidate){
     for(j in 1:n_voter){
       note <- tail(seuil[seuil <= 10*situation[i,j]],1) # 10* car préfs entre 0 et 1
+      #print(note)
       candidate_votes[i] <- candidate_votes[i] + note
     }
   }
@@ -409,13 +407,13 @@ range_voting <- function(situation) {
   res <- candidate_votes/n_voter
   winner_idx <- which(res == max(res))
   if(length(winner_idx) > 1){
-    return(NaN)
+    return(NULL)
   }
   winner <- names(candidate_votes)[winner_idx]
   return(winner)
 }
 
-#' Majority Jugement (Balinski) medianne
+#' Majority Jugement (Balinski) mediane
 #' @export
 #' @param situation voters preferences
 #' @returns winner
@@ -480,7 +478,6 @@ majority_jugement <- function(situation) {
       }
     }
   }
-
   #print(indice_max)
   #print(max_vote_count)
   winner <- rownames(situation)[indice_max]
@@ -489,14 +486,14 @@ majority_jugement <- function(situation) {
 
 library("stats")
 library("utils")
-#' Approbal vote
+#' Approval vote
 #' @export
 #' @param situation voters preferences
 #' @param mode n_approbation mode
 #' @import stats
 #' @import utils
 #' @returns winner
-approbal <- function(situation, mode = "fixe") {
+approval <- function(situation, mode = "fixe") {
   ##set.seed(2023)
   n_candidate <- nrow(situation)
   n_voter <- ncol(situation)
@@ -537,7 +534,7 @@ approbal <- function(situation, mode = "fixe") {
   # Retourne le(s) candidat(s) ayant obtenu le plus grand nombre d'approbations
   winner_idx <- which(candidate_votes == max(candidate_votes))
   if(length(winner_idx) > 1){
-    return(NaN)
+    return(NULL)
   }
   winner <- names(candidate_votes)[winner_idx]
   return(winner)
