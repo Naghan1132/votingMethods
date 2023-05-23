@@ -8,7 +8,7 @@
 # Condorcet
 # Uninomial 1T - OK
 # Uninomial 2T - OK
-# Elination successive
+# Elination successive - OK
 # Bucklin
 # Borda - OK
 # Nanson
@@ -16,7 +16,7 @@
 # Copeland
 
 # ==== Vote par évaluation ====
-# Vote à la moyenne / Range Voting
+# Vote à la moyenne / Range Voting - OK
 # Jugement Majoritaire - A VOIR PLUS TARD
 # Approbation
 
@@ -52,6 +52,26 @@ uninominal <- function(situation, n_round = 1) {
   return(winner)
 }
 
+#' Succesif elimination
+#' @export
+#' @param pref_matrix voters preferences
+#' @param first_it first iteration
+#' @returns remaining_candidates
+successif_elimination <- function(pref_matrix, first_it = TRUE) {
+  if(first_it){
+    pref_matrix <- preferences_to_ranks(pref_matrix)
+  }
+  print(pref_matrix)
+  table <- table(rownames(pref_matrix)[apply(pref_matrix, 2, which.min)])
+  print(table)
+  if(length(table) <= 2){
+    return(names(table)[which.is.max(table)])
+  }
+  looser <- names(table)[which.min(table)]
+  pref_matrix <- pref_matrix[names(table) != looser, ]
+  successif_elimination(pref_matrix,FALSE)
+}
+
 
 #' Borda method
 #' @param situation voters preferences
@@ -72,7 +92,6 @@ borda <- function(situation) {
 #' @param preference_matrix voters preferences
 #' @return winner, can be NULL
 condorcet <- function(preference_matrix) {
-  #set.seed(2023)
   candidates_names <- rownames(preference_matrix)
   n <- nrow(preference_matrix)
   preference_matrix <- preferences_to_ranks(preference_matrix)
@@ -85,7 +104,6 @@ condorcet <- function(preference_matrix) {
         count_i_j <- sum(preference_matrix[i, ] < preference_matrix[j, ])
         # créer fonction matrice duels (sapply ? )
         # fonction condorcet vainqueur  etc....
-
         count_j_i <- sum(preference_matrix[i, ] > preference_matrix[j, ])
         if (count_i_j > count_j_i) {
           duel_matrix[i, j] <- 1
@@ -147,7 +165,6 @@ copeland <- function(preference_matrix) {
 #' @param preference_matrix voters preferences
 #' @return winner, can be NULL
 minimax <- function(preference_matrix) {
-  #set.seed(2023)
   n <- nrow(preference_matrix)
   n_voter <- ncol(preference_matrix)
   preference_matrix <- preferences_to_ranks(preference_matrix) #score_to_pref() à mettre random (rank)
@@ -200,31 +217,11 @@ minimax <- function(preference_matrix) {
 }
 
 
-#' Succesif elimination
-#' @export
-#' @param pref_matrix voters preferences
-#' @returns remaining_candidates
-successif_elimination <- function(pref_matrix, first_it = TRUE) {
-  if(first_it){
-    pref_matrix <- preferences_to_ranks(pref_matrix)
-  }
-  print(pref_matrix)
-  table <- table(rownames(pref_matrix)[apply(pref_matrix, 2, which.min)])
-  print(table)
-  if(length(table) == 2){
-    return(names(table)[which.is.max(table)])
-  }
-  looser <- names(table)[which.min(table)]
-  pref_matrix <- pref_matrix[names(table) != looser, ]
-  successif_elimination(pref_matrix,FALSE)
-}
-
 #' Bucklin method
 #' @export
 #' @param pref_matrix voters preferences
 #' @returns winner
 bucklin <- function(pref_matrix) {
-  #set.seed(2023)
   pref_matrix <- preferences_to_ranks(pref_matrix)
   num_voters <- ncol(pref_matrix)
   num_candidates <- nrow(pref_matrix)
@@ -280,20 +277,14 @@ bucklin <- function(pref_matrix) {
 #' @param pref_matrix voters preferences
 #' @returns remaining_candidates
 nanson <- function(pref_matrix) {
-  #set.seed(2023)
   n_candidats <- nrow(pref_matrix)
   n_voters <- ncol(pref_matrix)
   ##View(pref_matrix)
   pref_matrix <- preferences_to_borda_points(pref_matrix)
   remaining_candidates <- rownames(pref_matrix)
   draw <- FALSE
-  # tester si vainqueur de Condorcet ! sinon procédure =>
-  condorcet <- condorcet(pref_matrix)
-  if(!is.null(condorcet)){
-    print("Gagnant de Condorcet !") # pas besoin de check condorcet !
-    return(condorcet)
-  }else{
-    while(length(remaining_candidates) > 2 | !draw){
+   # pas besoin de check condorcet !
+  while(length(remaining_candidates) > 2 | !draw){
       candidate_votes <- rep(0, length(remaining_candidates))
       names(candidate_votes) <- remaining_candidates
       # BORDA :
@@ -316,7 +307,6 @@ nanson <- function(pref_matrix) {
       # test égalité :
       draw <- draw_test(pref_matrix,remaining_candidates)
     }
-  }
   # =====
   if(length(remaining_candidates) > 1){
     return(NULL)
@@ -333,27 +323,9 @@ nanson <- function(pref_matrix) {
 #' @param situation voters preferences
 #' @returns winner
 range_voting <- function(situation) {
-  #set.seed(2023)
-  n_candidate <- nrow(situation)
-  n_voter <- ncol(situation)
-  candidate_votes <- rep(0, n_candidate)
-  names(candidate_votes) <- rownames(situation)
-  seuil <- c(0,1,2,3,4,5,6,7,8,9)
-  for (i in 1:n_candidate){
-    for(j in 1:n_voter){
-      note <- tail(seuil[seuil <= 10*situation[i,j]],1) # 10* car préfs entre 0 et 1 # faire un max(apply(mean(situation)))
-      #print(note)
-      candidate_votes[i] <- candidate_votes[i] + note
-    }
-  }
-  print(candidate_votes)
-  print(candidate_votes/n_voter)
-  res <- candidate_votes/n_voter
-  winner_idx <- which(res == max(res))
-  if(length(winner_idx) > 1){
-    return(NULL)
-  }
-  winner <- names(candidate_votes)[winner_idx]
+  mean <- apply(situation,1,mean)
+  print(mean)
+  winner <- names(mean)[which.is.max(mean)]
   return(winner)
 }
 
@@ -485,8 +457,8 @@ approval <- function(situation, mode = "fixe") {
   return(winner)
 }
 
-# fonction v/p condorcet
-# fonction matrice de duels
+# fonction vainqueur/perdant de condorcet
+# fonction matrice de duels -> uniformiser le système de duels !!!
 # apply / sapply
 # uniformiser le code
 # clean
@@ -495,4 +467,6 @@ approval <- function(situation, mode = "fixe") {
 # which.is.min()  / max()  ! nnet
 # score_to_rank dans autre package plutot
 # pas besoin de re-allocate pref ?
+# rank en random dans usefull fonction !!!
+
 
