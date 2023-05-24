@@ -4,7 +4,8 @@
 #' @returns ranks
 preferences_to_ranks <- function(preferences) {
   # Calculer les rangs de chaque élément sur chaque colonne
-  ranks <- apply(preferences, 2, rank) # score_to_pref() à mettre random (rank) !!!
+  # score_to_pref()
+  ranks <- apply(preferences, 2,rank_with_ties <- function(x) {rank(x, ties.method = "random")})
   # Inverser les rangs pour que le candidat le plus préféré soit le numéro 1
   ranks <- nrow(ranks) + 1 - ranks
   # Retourner les rangs
@@ -17,7 +18,7 @@ preferences_to_ranks <- function(preferences) {
 #' @returns points
 preferences_to_borda_points <- function(preferences) {
   # Calculer les rangs de chaque élément sur chaque colonne
-  points <- apply(preferences, 2,rank)
+  points <- apply(preferences, 2,rank_with_ties <- function(x) {rank(x, ties.method = "random")})
   # Retourner les rangs
   return(points)
 }

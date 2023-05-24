@@ -5,7 +5,7 @@
 #   uninominal_vote(generate_beta(10,3))
 
 # ==== Vote ordre de préférences ====
-# Condorcet
+# Condorcet - OK
 # Uninomial 1T - OK
 # Uninomial 2T - OK
 # Elination successive - OK
