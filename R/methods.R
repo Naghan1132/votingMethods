@@ -9,7 +9,7 @@
 # Uninomial 1T - OK
 # Uninomial 2T - OK
 # Elination successive - OK
-# Bucklin
+# Bucklin - OK
 # Borda - OK
 # Nanson - OK
 # Minimax
@@ -223,22 +223,20 @@ minimax <- function(preference_matrix) {
 #' @returns winner
 bucklin <- function(pref_matrix) {
   pref_matrix <- preferences_to_ranks(pref_matrix)
-  candidates_names <- rownames(pref_matrix)
   candidate_votes <- rep(0, nrow(pref_matrix))
-  names(candidate_votes) <- candidates_names
-  winner <- FALSE
+  names(candidate_votes) <- rownames(pref_matrix)
+  winner <- NULL
   n_round <- 1
   majority_threshold <- ceiling(ncol(pref_matrix) / 2)
-  while(!winner) {
+  while(is.null(winner)) {
     # Compter le nombre de votes pour chaque candidat
     candidate_votes <- sapply(1:nrow(pref_matrix), function(i) {
       candidate_votes[i] + sum(pref_matrix[i, ] == n_round)
     })
     print(candidate_votes)
-    # Majority test
     majority <- length(which(candidate_votes > majority_threshold) > 0)
     if (majority) {
-      winner <- candidates_names[which.is.max(candidate_votes)] # random between max vote if draw
+      winner <- names(candidate_votes)[which.is.max(candidate_votes)] # random between max vote if draw
       return(winner)
     }
     n_round <- n_round + 1
