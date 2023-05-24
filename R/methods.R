@@ -5,7 +5,7 @@
 #   uninominal_vote(generate_beta(10,3))
 
 # ==== Vote ordre de préférences ====
-# Condorcet - OK
+# Condorcet winner/looser - OK
 # Uninomial 1T - OK
 # Uninomial 2T - OK
 # Elination successive - OK
@@ -123,25 +123,20 @@ condorcet_looser <- function(preference_matrix){
 #' @param preference_matrix voters preferences
 #' @return winner
 copeland <- function(preference_matrix) {
-  n <- nrow(preference_matrix)
+  n_candidates <- nrow(preference_matrix)
+  n_voters <- ncol(preference_matrix)
   preference_matrix <- preferences_to_ranks(preference_matrix)
-  candidates_names <- rownames(preference_matrix)
-  scores <- rep(0, length(candidates_names))
-  names(scores) <- candidates_names
-  vote_counts <- table(rownames(preference_matrix)[apply(preference_matrix, 2, which.max)])
-
-  for (i in 1:(n - 1)) {
-    for (j in (i + 1):n) {
-      #sapply pas for !!!
+  scores <- rep(0, n_candidates)
+  for (i in 1:(n_candidates - 1)) {
+    for (j in (i + 1):n_candidates) {
       wins_i <- sum(preference_matrix[i,] < preference_matrix[j,])
-      wins_j <- sum(preference_matrix[i,] > preference_matrix[j,])
-      if (wins_i == wins_j) {
-        scores[i] <- scores[i] + 0.5
+      if (wins_i == n_voters/2) {
+        scores[i] <- scores[i] + 0.5 # draw
         scores[j] <- scores[j] + 0.5
-      } else if (wins_i > wins_j) {
-        scores[i] <- scores[i] + 1
+      } else if (wins_i > n_voters/2) {
+        scores[i] <- scores[i] + 1 # i win
       } else {
-        scores[j] <- scores[j] + 1
+        scores[j] <- scores[j] + 1 # j win
       }
     }
   }
