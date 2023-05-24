@@ -80,10 +80,10 @@ successif_elimination <- function(pref_matrix, first_it = TRUE) {
 borda <- function(situation) {
   situation <- preferences_to_borda_points(situation)
   # Calculer le total de chaque ligne
-  totaux <- rowSums(situation)
-  print(totaux)
+  totals <- rowSums(situation)
+  print(totals)
   # Retourner tous les indices des lignes ayant un total maximal
-  winner <- rownames(situation)[which.is.max(totaux)]
+  winner <- rownames(situation)[which.is.max(totals)]
   return(winner)
 }
 
@@ -276,42 +276,29 @@ bucklin <- function(pref_matrix) {
 #' @export
 #' @param pref_matrix voters preferences
 #' @returns remaining_candidates
-nanson <- function(pref_matrix) {
-  n_candidats <- nrow(pref_matrix)
-  n_voters <- ncol(pref_matrix)
-  ##View(pref_matrix)
-  pref_matrix <- preferences_to_borda_points(pref_matrix)
-  remaining_candidates <- rownames(pref_matrix)
-  draw <- FALSE
-   # pas besoin de check condorcet !
-  while(length(remaining_candidates) > 2 | !draw){
-      candidate_votes <- rep(0, length(remaining_candidates))
-      names(candidate_votes) <- remaining_candidates
-      # BORDA :
-      candidate_votes <- rowSums(pref_matrix)
-      print("somme : ")
-      print(candidate_votes)
-      mean <- sum(candidate_votes/length(remaining_candidates))
-      print("moyenne :")
-      print(mean)
-      # Éliminations :
-      below_mean <- min(candidate_votes[remaining_candidates])
-      eliminated_indices <- which(candidate_votes < mean)
-      eliminated_candidates <- rownames(pref_matrix)[eliminated_indices]
-      remaining_candidates <- setdiff(remaining_candidates, eliminated_candidates)
-      pref_matrix <- reallocate_points(pref_matrix,eliminated_candidates)
-
-      #print("remainning : ")
-      #print(remaining_candidates)
-
-      # test égalité :
-      draw <- draw_test(pref_matrix,remaining_candidates)
-    }
-  # =====
-  if(length(remaining_candidates) > 1){
-    return(NULL)
+nanson <- function(pref_matrix,first_it = TRUE) {
+  if(first_it){
+    pref_matrix <- preferences_to_borda_points(pref_matrix)
   }
-  return(remaining_candidates)
+  remaining_candidates <- rownames(pref_matrix)
+  # BORDA :
+  candidate_votes <- rowSums(pref_matrix)
+  print(candidate_votes)
+  mean <- sum(candidate_votes/length(remaining_candidates))
+  winner <- remaining_candidates[which.is.max(candidate_votes)]
+  loosers <- remaining_candidates[candidate_votes < mean]
+  print("loosers : ")
+  print(loosers)
+  if(nrow(pref_matrix)-length(loosers) == 1 ){
+    return(winner)
+  }else if(length(unique(candidate_votes)) == 1){
+    return(winner) # random winner
+  }else{
+    # Éliminations -> récursivité :
+    pref_matrix <- reallocate_points(pref_matrix,loosers)
+    nanson(pref_matrix,FALSE)
+  }
+  return(winner)
 }
 
 
@@ -410,11 +397,12 @@ library("utils")
 #' @import utils
 #' @returns winner
 approval <- function(situation, mode = "fixe") {
-  ##set.seed(2023)
   n_candidate <- nrow(situation)
   n_voter <- ncol(situation)
-  candidate_votes <- rep(0, n_candidate)
+  candidate_votes <- rep(0, n_candidate) # changer le rep() pour que ça mette direct les rownames
   names(candidate_votes) <- rownames(situation)
+  #candidate_votes <- table(rownames(situation))
+  #print(candidate_votes)
   # Calcule le nombre d'approbations pour chaque candidat
   if(mode == "fixe"){
     if(n_candidate == 2){
@@ -426,12 +414,17 @@ approval <- function(situation, mode = "fixe") {
     }else{
       n_appro <- round(n_candidate/2 - 2)
     }
+    # apply(tail(order(situation)),2,function(col){
+    #   print(col)
+    # })
+    # apply(situation, 2, function(x) {
+    #   indices_lignes <- tail(order(x), n_appro)
+    #   candidate_votes[indices_lignes] <- candidate_votes[indices_lignes] + 1
+    # })
     for(i in 1:n_voter){
-      # apply
       indices_lignes <- tail(order(situation[,i]), n_appro)
       candidate_votes[indices_lignes] <- candidate_votes[indices_lignes] + 1
     }
-    print(candidate_votes)
   }else if(mode == "poisson"){
     lambda <- n_candidate/2 # moyenne & variance de la loi
     poisson_values <- rpois(n_voter, lambda)
@@ -442,18 +435,13 @@ approval <- function(situation, mode = "fixe") {
       indices_lignes <- tail(order(situation[,i]), bounded_poisson_values[i])
       candidate_votes[indices_lignes] <- candidate_votes[indices_lignes] + 1
     }
-    print(candidate_votes)
   }else{
     # approbation pour tout ceux dont la préférences > 0.5
     candidate_votes <- apply(situation, 1, function(x) sum(x > 0.5))
-    print(candidate_votes)
   }
-  # Retourne le(s) candidat(s) ayant obtenu le plus grand nombre d'approbations
-  winner_idx <- which(candidate_votes == max(candidate_votes))
-  if(length(winner_idx) > 1){
-    return(NULL)
-  }
-  winner <- names(candidate_votes)[winner_idx]
+  print(candidate_votes)
+  # Retourne le candidat ayant obtenu le plus grand nombre d'approbations
+  winner <- names(candidate_votes)[which.is.max(candidate_votes)]
   return(winner)
 }
 
@@ -468,5 +456,3 @@ approval <- function(situation, mode = "fixe") {
 # score_to_rank dans autre package plutot
 # pas besoin de re-allocate pref ?
 # rank en random dans usefull fonction !!!
-
-

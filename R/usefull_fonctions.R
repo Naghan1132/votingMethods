@@ -83,22 +83,6 @@ reallocate_preferences <- function(pref_matrix, eliminated_candidates) {
   return(matrice_sans_zero)
 }
 
-#' draw_test
-#' @export
-#' @param pref_matrix voters preferences
-#' @param remaining_candidates remaining candidates
-#' @returns draw - false/true
-draw_test <- function(pref_matrix,remaining_candidates){
-  print(length(remaining_candidates))
-  if(length(remaining_candidates) != 1){
-    candidate_votes <- rowSums(pref_matrix)
-    # Vérification si les sommes des lignes sont toutes égales
-    draw <- length(unique(candidate_votes)) == 1
-  }else{
-    return(TRUE)
-  }
-  return(draw)
-}
 
 duel_matrix <- function(situation){
   n <- nrow(situation)

@@ -4,7 +4,7 @@
 \alias{nanson}
 \title{Nanson method}
 \usage{
-nanson(pref_matrix)
+nanson(pref_matrix, first_it = TRUE)
 }
 \arguments{
 \item{pref_matrix}{voters preferences}
