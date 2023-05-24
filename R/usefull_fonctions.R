@@ -34,32 +34,6 @@ rearrange_points <- function(points_matrix,eliminated_candidates) {
   return(rearranged_matrix)
 }
 
-#' reallocate_preferences
-#' @export
-#' @param pref_matrix voters preferences
-#' @param eliminated_candidates eliminated candidates
-#' @returns matrice_sans_zero
-reallocate_preferences <- function(pref_matrix, eliminated_candidates) {
-  num_voters <- ncol(pref_matrix)
-  num_candidates <- nrow(pref_matrix)
-  row_names <- rownames(pref_matrix)
-  reallocated_prefs <- matrix(0, nrow = num_candidates, ncol = num_voters,dimnames = list(row_names, NULL))
-  candidate_indices <- setdiff(row_names, eliminated_candidates)
-  for (i in 1:num_voters) {
-    voter_prefs <- pref_matrix[,i]
-    shifted_ranks <- voter_prefs
-    for (e in eliminated_candidates) {
-      shifted_ranks[voter_prefs > voter_prefs[e]] <- shifted_ranks[voter_prefs > voter_prefs[e]] - 1
-    }
-    shifted_ranks[eliminated_candidates] <- 0
-    reallocated_prefs[candidate_indices, i] <- shifted_ranks[candidate_indices]
-  }
-  eliminated_indices <- which(row_names %in% eliminated_candidates)
-  matrice_sans_zero <- reallocated_prefs[-eliminated_indices, ]
-  print(matrice_sans_zero)
-  return(matrice_sans_zero)
-}
-
 #' Make duel matrix
 #' @export
 #' @param preference_matrix voters preferences
