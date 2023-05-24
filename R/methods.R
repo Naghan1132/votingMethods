@@ -11,7 +11,7 @@
 # Elination successive - OK
 # Bucklin
 # Borda - OK
-# Nanson
+# Nanson - OK
 # Minimax
 # Copeland
 
@@ -223,53 +223,26 @@ minimax <- function(preference_matrix) {
 #' @returns winner
 bucklin <- function(pref_matrix) {
   pref_matrix <- preferences_to_ranks(pref_matrix)
-  num_voters <- ncol(pref_matrix)
-  num_candidates <- nrow(pref_matrix)
-  remaining_candidates <- rownames(pref_matrix)
-  candidate_votes <- rep(0, length(remaining_candidates))
-  names(candidate_votes) <- remaining_candidates
-
+  candidates_names <- rownames(pref_matrix)
+  candidate_votes <- rep(0, nrow(pref_matrix))
+  names(candidate_votes) <- candidates_names
   winner <- FALSE
   n_round <- 1
-  majority_threshold <- ceiling(num_voters / 2)
-  print("Majorite : ")
-  print(majority_threshold)
+  majority_threshold <- ceiling(ncol(pref_matrix) / 2)
   while(!winner) {
-    print("Round : ")
-    print(n_round)
     # Compter le nombre de votes pour chaque candidat
-    for (i in 1:num_candidates) {
-      candidate_votes[i] <- candidate_votes[i] + sum(pref_matrix[i,] == n_round)
-    }
-    print("votes : ")
+    candidate_votes <- sapply(1:nrow(pref_matrix), function(i) {
+      candidate_votes[i] + sum(pref_matrix[i, ] == n_round)
+    })
     print(candidate_votes)
-
-    # Trouver les candidats ayant obtenu une majorité
-    majority_candidates <- which(candidate_votes > majority_threshold)
-
-    #print("candidats majoritaires :")
-    #print(majority_candidates)
-    if (length(majority_candidates) > 0) {
-      # S'il y a un seul candidat avec une majorité, il est élu
-      if (length(majority_candidates) == 1) {
-        winner <- remaining_candidates[majority_candidates]
-        return(winner)
-      } else {
-        # Sinon, trouver le candidat avec la plus grande majorité
-        max_vote <- max(candidate_votes[majority_candidates])
-        max_candidates <- which(candidate_votes == max_vote)
-        # peut y avoir égalité parfaite
-        winner <- remaining_candidates[max_candidates]
-        if(length(winner) != 1){
-          winner <- NULL
-        }
-        #winner <- max_candidates
-        return(winner)
-      }
+    # Majority test
+    majority <- length(which(candidate_votes > majority_threshold) > 0)
+    if (majority) {
+      winner <- candidates_names[which.is.max(candidate_votes)] # random between max vote if draw
+      return(winner)
     }
     n_round <- n_round + 1
   }
-  return(winner)
 }
 
 #' Nanson method
@@ -287,12 +260,10 @@ nanson <- function(pref_matrix,first_it = TRUE) {
   mean <- sum(candidate_votes/length(remaining_candidates))
   winner <- remaining_candidates[which.is.max(candidate_votes)]
   loosers <- remaining_candidates[candidate_votes < mean]
-  print("loosers : ")
-  print(loosers)
-  if(nrow(pref_matrix)-length(loosers) == 1 ){
-    return(winner)
+  if(nrow(pref_matrix)-length(loosers) == 1){
+    return(winner) # win
   }else if(length(unique(candidate_votes)) == 1){
-    return(winner) # random winner
+    return(winner) # draw => random winner
   }else{
     # Éliminations -> récursivité :
     pref_matrix <- reallocate_points(pref_matrix,loosers)
