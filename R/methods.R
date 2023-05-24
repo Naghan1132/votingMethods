@@ -89,7 +89,7 @@ borda <- function(situation) {
 
 #' Condorcet Winner
 #' @export
-#' @param preference_matrix
+#' @param preference_matrix pref matrix
 #' @return winner
 condorcet_winner <- function(preference_matrix){
   duel_matrix <- make_duel_matrix(preference_matrix)
@@ -104,7 +104,7 @@ condorcet_winner <- function(preference_matrix){
 
 #' Condorcet Looser
 #' @export
-#' @param preference_matrix
+#' @param preference_matrix pref matrix
 #' @return looser
 condorcet_looser <- function(preference_matrix){
   duel_matrix <- make_duel_matrix(preference_matrix)
@@ -255,8 +255,8 @@ nanson <- function(pref_matrix,first_it = TRUE) {
     return(winner) # draw => random winner
   }else{
     # Éliminations -> récursivité :
-    pref_matrix <- reallocate_points(pref_matrix,loosers)
-    nanson(pref_matrix,FALSE)
+    pref_matrix <- rearange_points(pref_matrix,loosers)
+    return(nanson(pref_matrix,FALSE))
   }
   return(winner)
 }

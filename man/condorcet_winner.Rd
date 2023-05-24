@@ -6,6 +6,9 @@
 \usage{
 condorcet_winner(preference_matrix)
 }
+\arguments{
+\item{preference_matrix}{pref matrix}
+}
 \value{
 winner
 }
