@@ -13,7 +13,7 @@
 # Borda - OK
 # Nanson - OK
 # Minimax
-# Copeland
+# Copeland - OK
 
 # ==== Vote par évaluation ====
 # Vote à la moyenne / Range Voting - OK
@@ -237,20 +237,18 @@ nanson <- function(pref_matrix,first_it = TRUE) {
   if(first_it){
     pref_matrix <- preferences_to_borda_points(pref_matrix)
   }
-  remaining_candidates <- rownames(pref_matrix)
+  candidates_names <- rownames(pref_matrix)
   # BORDA :
   candidate_votes <- rowSums(pref_matrix)
   print(candidate_votes)
-  mean <- sum(candidate_votes/length(remaining_candidates))
-  winner <- remaining_candidates[which.is.max(candidate_votes)]
-  loosers <- remaining_candidates[candidate_votes < mean]
-  if(nrow(pref_matrix)-length(loosers) == 1){
-    return(winner) # win
-  }else if(length(unique(candidate_votes)) == 1){
-    return(winner) # draw => random winner
+  mean <- sum(candidate_votes/length(candidates_names))
+  winner <- candidates_names[which.is.max(candidate_votes)]
+  loosers <- candidates_names[candidate_votes < mean]
+  if((nrow(pref_matrix)-length(loosers) == 1) | (length(unique(candidate_votes)) == 1)){
+    return(winner) # win / draw (random winner)
   }else{
     # Éliminations -> récursivité :
-    pref_matrix <- rearange_points(pref_matrix,loosers)
+    pref_matrix <- rearrange_points(pref_matrix,loosers)
     return(nanson(pref_matrix,FALSE))
   }
   return(winner)
