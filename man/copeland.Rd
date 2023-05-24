@@ -10,7 +10,7 @@ copeland(preference_matrix)
 \item{preference_matrix}{voters preferences}
 }
 \value{
-winner, can be NULL
+winner
 }
 \description{
 Copeland procedure

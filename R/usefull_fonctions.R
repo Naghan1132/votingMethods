@@ -83,19 +83,34 @@ reallocate_preferences <- function(pref_matrix, eliminated_candidates) {
   return(matrice_sans_zero)
 }
 
-
-duel_matrix <- function(situation){
-  n <- nrow(situation)
-  matrix <- matrix(0, n, n)
-  for (i in 1:n) {
-    for (j in 1:n) {
+#' Make duel matrix
+#' @export
+#' @param preference_matrix voters preferences
+#' @return duel_matrix
+make_duel_matrix <- function(preference_matrix) {
+  n_candidates <- nrow(preference_matrix)
+  n_voters <- ncol(preference_matrix)
+  preference_matrix <- preferences_to_ranks(preference_matrix)
+  print(preference_matrix)
+  # Calcule la matrice des duels :
+  duel_matrix <- matrix(0, n_candidates,n_candidates)
+  candidates_names <- rownames(preference_matrix)
+  colnames(duel_matrix) <- candidates_names
+  rownames(duel_matrix) <- candidates_names
+  for (i in 1:n_candidates) {
+    for (j in 1:n_candidates) {
       if (i != j) {
-
+        count_i_j <- sum(preference_matrix[i, ] < preference_matrix[j, ])
+        duel_matrix[i, j] <- ifelse(count_i_j > n_voters/2, 1, 0)
       }
     }
   }
-  return(NULL)
+  return(duel_matrix)
 }
+
+
+
+
 
 
 

@@ -87,50 +87,41 @@ borda <- function(situation) {
   return(winner)
 }
 
-#' Condorcet
+#' Condorcet Winner
 #' @export
-#' @param preference_matrix voters preferences
-#' @return winner, can be NULL
-condorcet <- function(preference_matrix) {
-  candidates_names <- rownames(preference_matrix)
-  n <- nrow(preference_matrix)
-  preference_matrix <- preferences_to_ranks(preference_matrix)
-  print(preference_matrix)
-  # Calcule la matrice des duels
-  duel_matrix <- matrix(0, n, n)
-  for (i in 1:n) {
-    for (j in 1:n) {
-      if (i != j) {
-        count_i_j <- sum(preference_matrix[i, ] < preference_matrix[j, ])
-        # créer fonction matrice duels (sapply ? )
-        # fonction condorcet vainqueur  etc....
-        count_j_i <- sum(preference_matrix[i, ] > preference_matrix[j, ])
-        if (count_i_j > count_j_i) {
-          duel_matrix[i, j] <- 1
-        }
-        else if (count_i_j < count_j_i) {
-          duel_matrix[j, i] <- 1
-        }
-      }
-    }
-  }
+#' @param preference_matrix
+#' @return winner
+condorcet_winner <- function(preference_matrix){
+  duel_matrix <- make_duel_matrix(preference_matrix)
   print(duel_matrix)
-  # Vérifie s'il y a un vainqueur de Condorcet
   row_sums <- rowSums(duel_matrix)
-  winner <- NULL
-  if (any(row_sums == n-1)) {
-    winner_idx <- which(row_sums == max(row_sums))
-    winner <- candidates_names[winner_idx]
+  if(any(row_sums == nrow(duel_matrix)-1)){
+    winner <- names(which(row_sums == max(row_sums)))
+    return(winner)
   }
-  # Renvoie le vainqueur de Condorcet ou NULL s'il n'y en a pas
-  return(winner)
+  return(NULL)
+}
+
+#' Condorcet Looser
+#' @export
+#' @param preference_matrix
+#' @return looser
+condorcet_looser <- function(preference_matrix){
+  duel_matrix <- make_duel_matrix(preference_matrix)
+  print(duel_matrix)
+  col_sums <- colSums(duel_matrix)
+  if(any(col_sums == ncol(duel_matrix)-1)){
+    looser <- names(which(col_sums == max(col_sums)))
+    return(looser)
+  }
+  return(NULL)
 }
 
 
 #' Copeland procedure
 #' @export
 #' @param preference_matrix voters preferences
-#' @return winner, can be NULL
+#' @return winner
 copeland <- function(preference_matrix) {
   n <- nrow(preference_matrix)
   preference_matrix <- preferences_to_ranks(preference_matrix)
@@ -141,7 +132,7 @@ copeland <- function(preference_matrix) {
 
   for (i in 1:(n - 1)) {
     for (j in (i + 1):n) {
-      #saplly pas for !!!
+      #sapply pas for !!!
       wins_i <- sum(preference_matrix[i,] < preference_matrix[j,])
       wins_j <- sum(preference_matrix[i,] > preference_matrix[j,])
       if (wins_i == wins_j) {
@@ -413,15 +404,3 @@ approval <- function(situation, mode = "fixe") {
   winner <- names(candidate_votes)[which.is.max(candidate_votes)]
   return(winner)
 }
-
-# fonction vainqueur/perdant de condorcet
-# fonction matrice de duels -> uniformiser le système de duels !!!
-# apply / sapply
-# uniformiser le code
-# clean
-# full anglais
-# rank => random
-# which.is.min()  / max()  ! nnet
-# score_to_rank dans autre package plutot
-# pas besoin de re-allocate pref ?
-# rank en random dans usefull fonction !!!
