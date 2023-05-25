@@ -18,7 +18,7 @@
 
 # ==== Vote par évaluation ====
 # Vote à la moyenne / Range Voting - OK
-# Jugement Majoritaire - A VOIR PLUS TARD
+# Jugement Majoritaire - À VOIR PLUS TARD
 # Approbation
 
 
@@ -197,26 +197,20 @@ bucklin <- function(scores) {
 #' @returns winner
 nanson <- function(scores,first_it = TRUE) {
   if(first_it){
-    preferences <- scores_to_borda_points(scores)
+    scores <- scores_to_borda_points(scores)
   }
-  candidates_names <- rownames(preferences)
-  # BORDA :
-  candidate_votes <- rowSums(preferences)
+  candidate_votes <- rowSums(scores)
   print(candidate_votes)
-  mean <- sum(candidate_votes/length(candidates_names))
-  winner <- candidates_names[which.is.max(candidate_votes)]
-  loosers <- candidates_names[candidate_votes < mean]
-  if((nrow(preferences)-length(loosers) == 1) | (length(unique(candidate_votes)) == 1)){
+  mean <- sum(candidate_votes/length(candidate_votes))
+  loosers <- names(candidate_votes)[candidate_votes < mean]
+  if((length(candidate_votes)-length(loosers) == 1) | (length(unique(candidate_votes)) == 1)){
+    winner <- names(candidate_votes)[which.is.max(candidate_votes)]
     return(winner) # win / draw (random winner)
   }else{
-    # Éliminations -> récursivité :
-    preferences <- rearrange_points(preferences,loosers)
-    return(nanson(preferences,FALSE))
+    scores <- rearrange_points(scores,loosers) # Éliminations -> récursivité :
+    return(nanson(scores,FALSE))
   }
-  return(winner)
 }
-
-
 
 # ==== VOTE PAR ÉVALUATION ====
 
