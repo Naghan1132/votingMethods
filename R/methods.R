@@ -60,17 +60,17 @@ uninominal <- function(scores, n_round = 1) {
 #' @returns remaining_candidates
 successif_elimination <- function(scores, first_it = TRUE) {
   if(first_it){
-    preferences <- scores_to_preferences(scores)
+    scores <- scores_to_preferences(scores)
   }
-  print(preferences)
-  table <- table(rownames(preferences)[apply(preferences, 2, which.min)])
+  print(scores)
+  table <- table(rownames(scores)[apply(scores, 2, which.min)])
   print(table)
   if(length(table) <= 2){
     return(names(table)[which.is.max(table)])
   }else{
     looser <- names(table)[which.min(table)]
-    preferences <- preferences[names(table) != looser, ]
-    return(successif_elimination(preferences,FALSE))
+    scores <- scores[names(table) != looser, ]
+    return(successif_elimination(scores,FALSE))
   }
 }
 
@@ -127,23 +127,23 @@ condorcet_looser <- function(scores){
 copeland <- function(scores) {
   n_candidates <- nrow(scores)
   n_voters <- ncol(scores)
-  preferences <- scores_to_preferences(preferences)
+  preferences <- scores_to_preferences(scores)
   votes <- setNames(rep(0, n_candidates), rownames(preferences))
   for (i in 1:(n_candidates - 1)) {
     for (j in (i + 1):n_candidates) {
       wins_i <- sum(preferences[i,] < preferences[j,])
       if (wins_i == n_voters/2) {
-        scores[i] <- scores[i] + 0.5 # draw
-        scores[j] <- scores[j] + 0.5
+        votes[i] <- votes[i] + 0.5 # draw
+        votes[j] <- votes[j] + 0.5
       } else if (wins_i > n_voters/2) {
-        scores[i] <- scores[i] + 1 # i win
+        votes[i] <- votes[i] + 1 # i win
       } else {
-        scores[j] <- scores[j] + 1 # j win
+        votes[j] <- votes[j] + 1 # j win
       }
     }
   }
-  print(scores)
-  winner <- names(scores)[which.is.max(scores)]
+  print(votes)
+  winner <- names(votes)[which.is.max(votes)]
   return(winner)
 }
 
