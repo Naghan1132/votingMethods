@@ -4,13 +4,13 @@
 \alias{minimax}
 \title{Minimax procedure}
 \usage{
-minimax(preference_matrix)
+minimax(scores_matrix)
 }
 \arguments{
-\item{preference_matrix}{voters preferences}
+\item{scores_matrix}{voters scores}
 }
 \value{
-winner, can be NULL
+winner
 }
 \description{
 Minimax procedure

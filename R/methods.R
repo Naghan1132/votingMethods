@@ -60,7 +60,7 @@ uninominal <- function(situation, n_round = 1) {
 #' @returns remaining_candidates
 successif_elimination <- function(pref_matrix, first_it = TRUE) {
   if(first_it){
-    pref_matrix <- preferences_to_ranks(pref_matrix)
+    pref_matrix <- scores_to_preferences(pref_matrix)
   }
   print(pref_matrix)
   table <- table(rownames(pref_matrix)[apply(pref_matrix, 2, which.min)])
@@ -95,7 +95,6 @@ borda <- function(situation) {
 condorcet_winner <- function(preference_matrix){
   n_voters <- ncol(preference_matrix)
   duel_matrix <- make_duel_matrix(preference_matrix)
-  print(duel_matrix)
   # Appliquer la fonction personnalisée sur chaque ligne de la matrice
   resultat <- rownames(duel_matrix)[which(sapply(1:nrow(duel_matrix), function(i) ligne_sup(duel_matrix[i, ], i,n_voters/2)))]
   if(length(resultat) == 0){
@@ -111,7 +110,6 @@ condorcet_winner <- function(preference_matrix){
 condorcet_looser <- function(preference_matrix){
   n_voters <- ncol(preference_matrix)
   duel_matrix <- make_duel_matrix(preference_matrix)
-  print(duel_matrix)
   # Appliquer la fonction personnalisée sur chaque colonne de la matrice
   resultat <- rownames(duel_matrix)[which(sapply(1:ncol(duel_matrix), function(j) colonne_sup(duel_matrix[,j], j,n_voters/2)))]
   if(length(resultat) == 0){
@@ -128,7 +126,7 @@ condorcet_looser <- function(preference_matrix){
 copeland <- function(preference_matrix) {
   n_candidates <- nrow(preference_matrix)
   n_voters <- ncol(preference_matrix)
-  preference_matrix <- preferences_to_ranks(preference_matrix)
+  preference_matrix <- scores_to_preferences(preference_matrix)
   scores <- rep(0, n_candidates)
   for (i in 1:(n_candidates - 1)) {
     for (j in (i + 1):n_candidates) {
@@ -151,66 +149,29 @@ copeland <- function(preference_matrix) {
 
 #' Minimax procedure
 #' @export
-#' @param preference_matrix voters preferences
-#' @return winner, can be NULL
-minimax <- function(preference_matrix) {
-  n <- nrow(preference_matrix)
-  n_voter <- ncol(preference_matrix)
-  preference_matrix <- preferences_to_ranks(preference_matrix) #score_to_pref() à mettre random (rank)
-  candidates_names <- rownames(preference_matrix)
-  # Calcule les distances entre chaque paire de candidats - matrice de duels
-  duel_matrix <- matrix(0, n, n)
-  print(preference_matrix)
-  for (i in 1:(n - 1)) {
-    for (j in (i + 1):n) { # permet de diviser le nb de calcul / 2
-      win_i_j <- sum(preference_matrix[i,] < preference_matrix[j,])
-      duel_matrix[i,j] <- win_i_j
-      duel_matrix[j,i] <- n - win_i_j
-      #print(paste("[",i,",",j,"] = ",win_i_j))
-    }
-  }
-  print(duel_matrix) # OK
-  row_sums <- rowSums(duel_matrix)
-  col_sums <- colSums(duel_matrix)
-  # Vainqueur de Condorcet : peut-être changer avec la fonction Condorcet ?
-  rows_greater_than_half <- apply(duel_matrix, 1, function(row) all(row > n_voter/2))
-  cols_less_than_half <- apply(duel_matrix, 2, function(col) all(col < n_voter/2))
-  if (any(rows_greater_than_half == TRUE)) {
-    winner <- rows_greater_than_half
-  }else if(any(cols_less_than_half == TRUE)){
-    winner <- cols_less_than_half
+#' @param scores_matrix voters scores
+#' @return winner
+minimax <- function(scores_matrix) {
+  preference_matrix <- scores_to_preferences(scores_matrix)
+  duel_matrix <- make_duel_matrix(preference_matrix)
+  print(duel_matrix)
+  condorcet_winner <- condorcet_winner(duel_matrix)
+  if(!is.null(condorcet_winner)){
+    return(condorcet_winner)
   }else{
-    # sinon le moins pire des valeurs
-    row_worst_values <- rep(Inf, n)  # Initialiser avec une valeur infinie
-    for (i in 1:n) {
-      for (j in 1:n) {
-        if (i != j) {  # Exclure la diagonale symétrique
-          value <- duel_matrix[i, j]
-          if (value < row_worst_values[i]) {
-            row_worst_values[i] <- value
-          }
-        }
-      }
-    }
-    print(row_worst_values)
-    # prendre seulement le score max de tous les duels perdus pour chaque candidat, dont moins n_v/2
-    # et la prendre le min
-    row_with_highest_worst_value <- which.max(row_worst_values) # égalité, remplacer par which is max
-    winner <- row_with_highest_worst_value
+    # sinon le moins pire des valeurs (minimum de chaque ligne, hors diagonale)
+    resultat <- sapply(1:nrow(duel_matrix), function(i) ligne_min(duel_matrix[i, ], i))
+    winner <- rownames(duel_matrix)[which.is.max(resultat)]
+    return(winner)
   }
-  if(length(candidates_names[winner]) > 1){
-    return(NULL)
-  }
-  return(candidates_names[winner])
 }
-
 
 #' Bucklin method
 #' @export
 #' @param pref_matrix voters preferences
 #' @returns winner
 bucklin <- function(pref_matrix) {
-  pref_matrix <- preferences_to_ranks(pref_matrix)
+  pref_matrix <- scores_to_preferences(pref_matrix)
   candidate_votes <- rep(0, nrow(pref_matrix))
   names(candidate_votes) <- rownames(pref_matrix)
   winner <- NULL
