@@ -47,7 +47,7 @@ uninominal <- function(scores, n_round = 1) {
       # Si aucun candidat n'a la majorité absolue, on passe au second tour
       top2_indices <- names(vote_counts)[order(vote_counts, decreasing = TRUE)[1:2]]
       scores2 <- scores[top2_indices,]
-      winner <- uninominal(scores2, n_round = 1)
+      return(uninominal(scores2, n_round = 1))
     }
   }
   return(winner)
@@ -67,10 +67,11 @@ successif_elimination <- function(scores, first_it = TRUE) {
   print(table)
   if(length(table) <= 2){
     return(names(table)[which.is.max(table)])
+  }else{
+    looser <- names(table)[which.min(table)]
+    preferences <- preferences[names(table) != looser, ]
+    return(successif_elimination(preferences,FALSE))
   }
-  looser <- names(table)[which.min(table)]
-  preferences <- preferences[names(table) != looser, ]
-  successif_elimination(preferences,FALSE)
 }
 
 
@@ -127,7 +128,7 @@ copeland <- function(scores) {
   n_candidates <- nrow(scores)
   n_voters <- ncol(scores)
   preferences <- scores_to_preferences(preferences)
-  scores <- setNames(rep(0, n_candidates), rownames(preferences))
+  votes <- setNames(rep(0, n_candidates), rownames(preferences))
   for (i in 1:(n_candidates - 1)) {
     for (j in (i + 1):n_candidates) {
       wins_i <- sum(preferences[i,] < preferences[j,])
@@ -158,8 +159,8 @@ minimax <- function(scores) {
   condorcet_winner <- condorcet_winner(duel_matrix)
   if(!is.null(condorcet_winner)){
     return(condorcet_winner)
-  }else{
-    # sinon le moins pire des valeurs (minimum de chaque ligne, hors diagonale)
+  }
+  else{# sinon le moins pire des valeurs (minimum de chaque ligne, hors diagonale)
     resultat <- sapply(1:nrow(duel_matrix), function(i) ligne_min(duel_matrix[i, ], i))
     winner <- rownames(duel_matrix)[which.is.max(resultat)]
     return(winner)
@@ -182,8 +183,8 @@ bucklin <- function(scores) {
       candidate_votes[i] + sum(preferences[i, ] == n_round)
     })
     print(candidate_votes)
-    majority <- length(which(candidate_votes > majority_threshold) > 0)
-    if (majority) {
+    someone_has_majority <- length(which(candidate_votes > majority_threshold) > 0)
+    if (someone_has_majority) {
       winner <- names(candidate_votes)[which.is.max(candidate_votes)] # random between max vote if draw
       return(winner)
     }
@@ -207,7 +208,8 @@ nanson <- function(scores,first_it = TRUE) {
     winner <- names(candidate_votes)[which.is.max(candidate_votes)]
     return(winner) # win / draw (random winner)
   }else{
-    scores <- rearrange_points(scores,loosers) # Éliminations -> récursivité :
+    # Éliminations -> récursivité :
+    scores <- rearrange_points(scores,loosers)
     return(nanson(scores,FALSE))
   }
 }
