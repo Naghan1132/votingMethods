@@ -48,19 +48,35 @@ make_duel_matrix <- function(preference_matrix) {
   candidates_names <- rownames(preference_matrix)
   colnames(duel_matrix) <- candidates_names
   rownames(duel_matrix) <- candidates_names
-  for (i in 1:n_candidates) {
-    for (j in 1:n_candidates) {
-      if (i != j) {
-        count_i_j <- sum(preference_matrix[i, ] < preference_matrix[j, ])
-        duel_matrix[i, j] <- ifelse(count_i_j > n_voters/2, 1, 0)
-      }
+  # for (i in 1:n_candidates) {
+  #   for (j in 1:n_candidates) {
+  #     if (i != j) {
+  #       count_i_j <- sum(preference_matrix[i, ] < preference_matrix[j, ])
+  #       duel_matrix[i, j] <- ifelse(count_i_j > n_voters/2, 1, 0)
+  #     }
+  #   }
+  # }
+  for (i in 1:(n_candidates - 1)) {
+    for (j in (i + 1):n_candidates) {
+      win_i_j <- sum(preference_matrix[i,] < preference_matrix[j,])
+      duel_matrix[i,j] <- win_i_j
+      duel_matrix[j,i] <- n_voters - win_i_j
     }
   }
   return(duel_matrix)
 }
 
+ligne_sup <- function(row, indice_ligne,majority) {
+  indices <- seq_along(row)
+  indices <- indices[indices != indice_ligne]
+  all(row[indices] > majority)
+}
 
-
+colonne_sup <- function(col, indice_colonne,majority) {
+  indices <- seq_along(col)
+  indices <- indices[indices != indice_colonne]
+  all(col[indices] > majority)
+}
 
 
 

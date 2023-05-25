@@ -5,7 +5,8 @@
 #   uninominal_vote(generate_beta(10,3))
 
 # ==== Vote ordre de préférences ====
-# Condorcet winner/looser - OK
+# Condorcet winner - OK
+# Condorcet looser - OK
 # Uninomial 1T - OK
 # Uninomial 2T - OK
 # Elination successive - OK
@@ -92,14 +93,15 @@ borda <- function(situation) {
 #' @param preference_matrix pref matrix
 #' @return winner
 condorcet_winner <- function(preference_matrix){
+  n_voters <- ncol(preference_matrix)
   duel_matrix <- make_duel_matrix(preference_matrix)
   print(duel_matrix)
-  row_sums <- rowSums(duel_matrix)
-  if(any(row_sums == nrow(duel_matrix)-1)){
-    winner <- names(which(row_sums == max(row_sums)))
-    return(winner)
+  # Appliquer la fonction personnalisée sur chaque ligne de la matrice
+  resultat <- rownames(duel_matrix)[which(sapply(1:nrow(duel_matrix), function(i) ligne_sup(duel_matrix[i, ], i,n_voters/2)))]
+  if(length(resultat) == 0){
+    return(NULL)
   }
-  return(NULL)
+  return(resultat)
 }
 
 #' Condorcet Looser
@@ -107,14 +109,15 @@ condorcet_winner <- function(preference_matrix){
 #' @param preference_matrix pref matrix
 #' @return looser
 condorcet_looser <- function(preference_matrix){
+  n_voters <- ncol(preference_matrix)
   duel_matrix <- make_duel_matrix(preference_matrix)
   print(duel_matrix)
-  col_sums <- colSums(duel_matrix)
-  if(any(col_sums == ncol(duel_matrix)-1)){
-    looser <- names(which(col_sums == max(col_sums)))
-    return(looser)
+  # Appliquer la fonction personnalisée sur chaque colonne de la matrice
+  resultat <- rownames(duel_matrix)[which(sapply(1:ncol(duel_matrix), function(j) colonne_sup(duel_matrix[,j], j,n_voters/2)))]
+  if(length(resultat) == 0){
+    return(NULL)
   }
-  return(NULL)
+  return(resultat)
 }
 
 
@@ -158,13 +161,12 @@ minimax <- function(preference_matrix) {
   # Calcule les distances entre chaque paire de candidats - matrice de duels
   duel_matrix <- matrix(0, n, n)
   print(preference_matrix)
-  for (i in 1:n) {
-    for (j in 1:n) {
-      if (i != j) {
-        win_i_j <- sum(preference_matrix[i,] < preference_matrix[j,]) # ok
-        duel_matrix[i,j] <- win_i_j
-        duel_matrix[j,i] <- n_voter - win_i_j
-      }
+  for (i in 1:(n - 1)) {
+    for (j in (i + 1):n) { # permet de diviser le nb de calcul / 2
+      win_i_j <- sum(preference_matrix[i,] < preference_matrix[j,])
+      duel_matrix[i,j] <- win_i_j
+      duel_matrix[j,i] <- n - win_i_j
+      #print(paste("[",i,",",j,"] = ",win_i_j))
     }
   }
   print(duel_matrix) # OK
@@ -191,7 +193,7 @@ minimax <- function(preference_matrix) {
       }
     }
     print(row_worst_values)
-    # prendre ssl le score max de tous les duels perdus pour chaque candidat, dont moins n_v/2
+    # prendre seulement le score max de tous les duels perdus pour chaque candidat, dont moins n_v/2
     # et la prendre le min
     row_with_highest_worst_value <- which.max(row_worst_values) # égalité, remplacer par which is max
     winner <- row_with_highest_worst_value
