@@ -4,10 +4,10 @@
 \alias{successif_elimination}
 \title{Succesif elimination}
 \usage{
-successif_elimination(pref_matrix, first_it = TRUE)
+successif_elimination(scores, first_it = TRUE)
 }
 \arguments{
-\item{pref_matrix}{voters preferences}
+\item{scores}{voters scores}
 
 \item{first_it}{first iteration}
 }

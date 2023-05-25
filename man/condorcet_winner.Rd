@@ -4,10 +4,10 @@
 \alias{condorcet_winner}
 \title{Condorcet Winner}
 \usage{
-condorcet_winner(preference_matrix)
+condorcet_winner(scores)
 }
 \arguments{
-\item{preference_matrix}{pref matrix}
+\item{scores}{scores matrix}
 }
 \value{
 winner

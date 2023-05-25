@@ -10,13 +10,13 @@ scores_to_preferences <- function(scores) {
   return(preferences)
 }
 
-#' preferences_to_borda_points
+#' scores_to_borda_points
 #' @export
-#' @param preferences voters preferences
+#' @param scores voters preferences
 #' @returns points
-preferences_to_borda_points <- function(preferences) {
+scores_to_borda_points <- function(scores) {
   # Calculer les rangs de chaque élément sur chaque colonne
-  points <- apply(preferences, 2,rank_with_ties <- function(x) {rank(x, ties.method = "random")})
+  points <- apply(scores, 2,rank_with_ties <- function(x) {rank(x, ties.method = "random")})
   # Retourner les rangs
   return(points)
 }
@@ -34,29 +34,22 @@ rearrange_points <- function(points_matrix,eliminated_candidates) {
 
 #' Make duel matrix
 #' @export
-#' @param preference_matrix voters preferences
+#' @param scores voters preferences
 #' @return duel_matrix
-make_duel_matrix <- function(preference_matrix) {
-  n_candidates <- nrow(preference_matrix)
-  n_voters <- ncol(preference_matrix)
-  preference_matrix <- preferences_to_ranks(preference_matrix)
+make_duel_matrix <- function(scores) {
+  n_candidates <- nrow(scores)
+  n_voters <- ncol(scores)
+  preferences <- scores_to_preferences(scores)
+  print(preferences)
   # Calcule la matrice des duels :
   duel_matrix <- matrix(0, n_candidates,n_candidates)
-  candidates_names <- rownames(preference_matrix)
+  candidates_names <- rownames(preferences)
   colnames(duel_matrix) <- candidates_names
   rownames(duel_matrix) <- candidates_names
-  # for (i in 1:n_candidates) {
-  #   for (j in 1:n_candidates) {
-  #     if (i != j) {
-  #       count_i_j <- sum(preference_matrix[i, ] < preference_matrix[j, ])
-  #       duel_matrix[i, j] <- ifelse(count_i_j > n_voters/2, 1, 0)
-  #     }
-  #   }
-  # }
   # Divise les calculs par 2 !
   for (i in 1:(n_candidates - 1)) {
     for (j in (i + 1):n_candidates) {
-      win_i_j <- sum(preference_matrix[i,] < preference_matrix[j,])
+      win_i_j <- sum(preferences[i,] < preferences[j,])
       duel_matrix[i,j] <- win_i_j
       duel_matrix[j,i] <- n_voters - win_i_j
     }

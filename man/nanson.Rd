@@ -4,13 +4,13 @@
 \alias{nanson}
 \title{Nanson method}
 \usage{
-nanson(pref_matrix, first_it = TRUE)
+nanson(scores, first_it = TRUE)
 }
 \arguments{
-\item{pref_matrix}{voters preferences}
+\item{scores}{voters scores}
 }
 \value{
-remaining_candidates
+winner
 }
 \description{
 Nanson method

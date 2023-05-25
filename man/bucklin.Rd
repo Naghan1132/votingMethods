@@ -4,10 +4,10 @@
 \alias{bucklin}
 \title{Bucklin method}
 \usage{
-bucklin(pref_matrix)
+bucklin(scores)
 }
 \arguments{
-\item{pref_matrix}{voters preferences}
+\item{scores}{voters scores}
 }
 \value{
 winner

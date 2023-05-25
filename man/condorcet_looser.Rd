@@ -4,10 +4,10 @@
 \alias{condorcet_looser}
 \title{Condorcet Looser}
 \usage{
-condorcet_looser(preference_matrix)
+condorcet_looser(scores)
 }
 \arguments{
-\item{preference_matrix}{pref matrix}
+\item{scores}{scores matrix}
 }
 \value{
 looser

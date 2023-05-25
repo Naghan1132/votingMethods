@@ -4,15 +4,15 @@
 \alias{uninominal}
 \title{Uninominal vote}
 \usage{
-uninominal(situation, n_round = 1)
+uninominal(scores, n_round = 1)
 }
 \arguments{
-\item{situation}{voters preferences}
+\item{scores}{voters scores}
 
 \item{n_round}{int}
 }
 \value{
-winner_idx
+winner
 }
 \description{
 Uninominal vote

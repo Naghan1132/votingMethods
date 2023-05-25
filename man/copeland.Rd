@@ -4,10 +4,10 @@
 \alias{copeland}
 \title{Copeland procedure}
 \usage{
-copeland(preference_matrix)
+copeland(scores)
 }
 \arguments{
-\item{preference_matrix}{voters preferences}
+\item{scores}{voters scores}
 }
 \value{
 winner

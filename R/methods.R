@@ -13,7 +13,7 @@
 # Bucklin - OK
 # Borda - OK
 # Nanson - OK
-# Minimax
+# Minimax - OK
 # Copeland - OK
 
 # ==== Vote par évaluation ====
@@ -28,17 +28,17 @@
 
 #' Uninominal vote
 #' @export
-#' @param situation voters preferences
+#' @param scores voters scores
 #' @param n_round int
 #' @import nnet
-#' @returns winner_idx
-uninominal <- function(situation, n_round = 1) {
+#' @returns winner
+uninominal <- function(scores, n_round = 1) {
   if(!(n_round == 1 | n_round == 2)){
     stop("Number of rounds must be 1 or 2")
   }
-  n_voters <- ncol(situation)
+  n_voters <- ncol(scores)
   # Initialiser le vecteur de voix pour chaque candidat
-  vote_counts <- table(rownames(situation)[apply(situation, 2, which.is.max)])
+  vote_counts <- table(rownames(scores)[apply(scores, 2, which.is.max)])
   print(vote_counts)
   winner <- names(vote_counts)[which.is.max(vote_counts)]
   if(n_round == 2) {
@@ -46,8 +46,8 @@ uninominal <- function(situation, n_round = 1) {
     if(max(vote_counts) / n_voters < 0.5) {
       # Si aucun candidat n'a la majorité absolue, on passe au second tour
       top2_indices <- names(vote_counts)[order(vote_counts, decreasing = TRUE)[1:2]]
-      situation2 <- situation[top2_indices,]
-      winner <- uninominal(situation2, n_round = 1)
+      scores2 <- scores[top2_indices,]
+      winner <- uninominal(scores2, n_round = 1)
     }
   }
   return(winner)
@@ -55,46 +55,46 @@ uninominal <- function(situation, n_round = 1) {
 
 #' Succesif elimination
 #' @export
-#' @param pref_matrix voters preferences
+#' @param scores voters scores
 #' @param first_it first iteration
 #' @returns remaining_candidates
-successif_elimination <- function(pref_matrix, first_it = TRUE) {
+successif_elimination <- function(scores, first_it = TRUE) {
   if(first_it){
-    pref_matrix <- scores_to_preferences(pref_matrix)
+    preferences <- scores_to_preferences(scores)
   }
-  print(pref_matrix)
-  table <- table(rownames(pref_matrix)[apply(pref_matrix, 2, which.min)])
+  print(preferences)
+  table <- table(rownames(preferences)[apply(preferences, 2, which.min)])
   print(table)
   if(length(table) <= 2){
     return(names(table)[which.is.max(table)])
   }
   looser <- names(table)[which.min(table)]
-  pref_matrix <- pref_matrix[names(table) != looser, ]
-  successif_elimination(pref_matrix,FALSE)
+  preferences <- preferences[names(table) != looser, ]
+  successif_elimination(preferences,FALSE)
 }
 
 
 #' Borda method
-#' @param situation voters preferences
+#' @param scores voters scores
 #' @returns winner
 #' @export
-borda <- function(situation) {
-  situation <- preferences_to_borda_points(situation)
+borda <- function(scores) {
+  points <- scores_to_borda_points(scores)
   # Calculer le total de chaque ligne
-  totals <- rowSums(situation)
+  totals <- rowSums(points)
   print(totals)
   # Retourner tous les indices des lignes ayant un total maximal
-  winner <- rownames(situation)[which.is.max(totals)]
+  winner <- rownames(points)[which.is.max(totals)]
   return(winner)
 }
 
 #' Condorcet Winner
 #' @export
-#' @param preference_matrix pref matrix
+#' @param scores scores matrix
 #' @return winner
-condorcet_winner <- function(preference_matrix){
-  n_voters <- ncol(preference_matrix)
-  duel_matrix <- make_duel_matrix(preference_matrix)
+condorcet_winner <- function(scores){
+  n_voters <- ncol(scores)
+  duel_matrix <- make_duel_matrix(scores)
   # Appliquer la fonction personnalisée sur chaque ligne de la matrice
   resultat <- rownames(duel_matrix)[which(sapply(1:nrow(duel_matrix), function(i) ligne_sup(duel_matrix[i, ], i,n_voters/2)))]
   if(length(resultat) == 0){
@@ -105,11 +105,11 @@ condorcet_winner <- function(preference_matrix){
 
 #' Condorcet Looser
 #' @export
-#' @param preference_matrix pref matrix
+#' @param scores scores matrix
 #' @return looser
-condorcet_looser <- function(preference_matrix){
-  n_voters <- ncol(preference_matrix)
-  duel_matrix <- make_duel_matrix(preference_matrix)
+condorcet_looser <- function(scores){
+  n_voters <- ncol(scores)
+  duel_matrix <- make_duel_matrix(scores)
   # Appliquer la fonction personnalisée sur chaque colonne de la matrice
   resultat <- rownames(duel_matrix)[which(sapply(1:ncol(duel_matrix), function(j) colonne_sup(duel_matrix[,j], j,n_voters/2)))]
   if(length(resultat) == 0){
@@ -121,16 +121,16 @@ condorcet_looser <- function(preference_matrix){
 
 #' Copeland procedure
 #' @export
-#' @param preference_matrix voters preferences
+#' @param scores voters scores
 #' @return winner
-copeland <- function(preference_matrix) {
-  n_candidates <- nrow(preference_matrix)
-  n_voters <- ncol(preference_matrix)
-  preference_matrix <- scores_to_preferences(preference_matrix)
-  scores <- rep(0, n_candidates)
+copeland <- function(scores) {
+  n_candidates <- nrow(scores)
+  n_voters <- ncol(scores)
+  preferences <- scores_to_preferences(preferences)
+  scores <- setNames(rep(0, n_candidates), rownames(preferences))
   for (i in 1:(n_candidates - 1)) {
     for (j in (i + 1):n_candidates) {
-      wins_i <- sum(preference_matrix[i,] < preference_matrix[j,])
+      wins_i <- sum(preferences[i,] < preferences[j,])
       if (wins_i == n_voters/2) {
         scores[i] <- scores[i] + 0.5 # draw
         scores[j] <- scores[j] + 0.5
@@ -142,18 +142,18 @@ copeland <- function(preference_matrix) {
     }
   }
   print(scores)
-  winner <- rownames(preference_matrix)[which.is.max(scores)]
+  winner <- names(scores)[which.is.max(scores)]
   return(winner)
 }
 
 
 #' Minimax procedure
 #' @export
-#' @param scores_matrix voters scores
+#' @param scores voters scores
 #' @return winner
-minimax <- function(scores_matrix) {
-  preference_matrix <- scores_to_preferences(scores_matrix)
-  duel_matrix <- make_duel_matrix(preference_matrix)
+minimax <- function(scores) {
+  preferences <- scores_to_preferences(scores)
+  duel_matrix <- make_duel_matrix(preferences)
   print(duel_matrix)
   condorcet_winner <- condorcet_winner(duel_matrix)
   if(!is.null(condorcet_winner)){
@@ -168,19 +168,18 @@ minimax <- function(scores_matrix) {
 
 #' Bucklin method
 #' @export
-#' @param pref_matrix voters preferences
+#' @param scores voters scores
 #' @returns winner
-bucklin <- function(pref_matrix) {
-  pref_matrix <- scores_to_preferences(pref_matrix)
-  candidate_votes <- rep(0, nrow(pref_matrix))
-  names(candidate_votes) <- rownames(pref_matrix)
+bucklin <- function(scores) {
+  preferences <- scores_to_preferences(scores)
+  candidate_votes <- setNames(rep(0, nrow(preferences)), rownames(preferences))
   winner <- NULL
   n_round <- 1
-  majority_threshold <- ceiling(ncol(pref_matrix) / 2)
+  majority_threshold <- ceiling(ncol(preferences) / 2)
   while(is.null(winner)) {
     # Compter le nombre de votes pour chaque candidat
-    candidate_votes <- sapply(1:nrow(pref_matrix), function(i) {
-      candidate_votes[i] + sum(pref_matrix[i, ] == n_round)
+    candidate_votes <- sapply(1:nrow(preferences), function(i) {
+      candidate_votes[i] + sum(preferences[i, ] == n_round)
     })
     print(candidate_votes)
     majority <- length(which(candidate_votes > majority_threshold) > 0)
@@ -194,25 +193,25 @@ bucklin <- function(pref_matrix) {
 
 #' Nanson method
 #' @export
-#' @param pref_matrix voters preferences
-#' @returns remaining_candidates
-nanson <- function(pref_matrix,first_it = TRUE) {
+#' @param scores voters scores
+#' @returns winner
+nanson <- function(scores,first_it = TRUE) {
   if(first_it){
-    pref_matrix <- preferences_to_borda_points(pref_matrix)
+    preferences <- scores_to_borda_points(scores)
   }
-  candidates_names <- rownames(pref_matrix)
+  candidates_names <- rownames(preferences)
   # BORDA :
-  candidate_votes <- rowSums(pref_matrix)
+  candidate_votes <- rowSums(preferences)
   print(candidate_votes)
   mean <- sum(candidate_votes/length(candidates_names))
   winner <- candidates_names[which.is.max(candidate_votes)]
   loosers <- candidates_names[candidate_votes < mean]
-  if((nrow(pref_matrix)-length(loosers) == 1) | (length(unique(candidate_votes)) == 1)){
+  if((nrow(preferences)-length(loosers) == 1) | (length(unique(candidate_votes)) == 1)){
     return(winner) # win / draw (random winner)
   }else{
     # Éliminations -> récursivité :
-    pref_matrix <- rearrange_points(pref_matrix,loosers)
-    return(nanson(pref_matrix,FALSE))
+    preferences <- rearrange_points(preferences,loosers)
+    return(nanson(preferences,FALSE))
   }
   return(winner)
 }
@@ -223,10 +222,10 @@ nanson <- function(pref_matrix,first_it = TRUE) {
 
 #' Range voting (vote à la moyenne)
 #' @export
-#' @param situation voters preferences
+#' @param scores voters scores
 #' @returns winner
-range_voting <- function(situation) {
-  mean <- apply(situation,1,mean)
+range_voting <- function(scores) {
+  mean <- apply(scores,1,mean)
   print(mean)
   winner <- names(mean)[which.is.max(mean)]
   return(winner)
@@ -307,18 +306,15 @@ library("stats")
 library("utils")
 #' Approval vote
 #' @export
-#' @param situation voters preferences
+#' @param scores voters scores
 #' @param mode n_approbation mode
 #' @import stats
 #' @import utils
 #' @returns winner
-approval <- function(situation, mode = "fixe") {
-  n_candidate <- nrow(situation)
-  n_voter <- ncol(situation)
-  candidate_votes <- rep(0, n_candidate) # changer le rep() pour que ça mette direct les rownames
-  names(candidate_votes) <- rownames(situation)
-  #candidate_votes <- table(rownames(situation))
-  #print(candidate_votes)
+approval <- function(scores, mode = "fixe") {
+  n_candidate <- nrow(scores)
+  n_voter <- ncol(scores)
+  candidate_votes <- setNames(rep(0, n_candidate), rownames(scores))
   # Calcule le nombre d'approbations pour chaque candidat
   if(mode == "fixe"){
     if(n_candidate == 2){
@@ -338,7 +334,7 @@ approval <- function(situation, mode = "fixe") {
     #   candidate_votes[indices_lignes] <- candidate_votes[indices_lignes] + 1
     # })
     for(i in 1:n_voter){
-      indices_lignes <- tail(order(situation[,i]), n_appro)
+      indices_lignes <- tail(order(scores[,i]), n_appro)
       candidate_votes[indices_lignes] <- candidate_votes[indices_lignes] + 1
     }
   }else if(mode == "poisson"){
@@ -348,12 +344,12 @@ approval <- function(situation, mode = "fixe") {
     print(bounded_poisson_values)
     hist(bounded_poisson_values)
     for(i in 1:n_voter){
-      indices_lignes <- tail(order(situation[,i]), bounded_poisson_values[i])
+      indices_lignes <- tail(order(scores[,i]), bounded_poisson_values[i])
       candidate_votes[indices_lignes] <- candidate_votes[indices_lignes] + 1
     }
   }else{
     # approbation pour tout ceux dont la préférences > 0.5
-    candidate_votes <- apply(situation, 1, function(x) sum(x > 0.5))
+    candidate_votes <- apply(scores, 1, function(x) sum(x > 0.5))
   }
   print(candidate_votes)
   # Retourne le candidat ayant obtenu le plus grand nombre d'approbations

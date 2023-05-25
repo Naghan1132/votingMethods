@@ -4,10 +4,10 @@
 \alias{range_voting}
 \title{Range voting (vote à la moyenne)}
 \usage{
-range_voting(situation)
+range_voting(scores)
 }
 \arguments{
-\item{situation}{voters preferences}
+\item{scores}{voters scores}
 }
 \value{
 winner

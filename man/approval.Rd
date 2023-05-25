@@ -4,10 +4,10 @@
 \alias{approval}
 \title{Approval vote}
 \usage{
-approval(situation, mode = "fixe")
+approval(scores, mode = "fixe")
 }
 \arguments{
-\item{situation}{voters preferences}
+\item{scores}{voters scores}
 
 \item{mode}{n_approbation mode}
 }

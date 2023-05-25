@@ -4,10 +4,10 @@
 \alias{minimax}
 \title{Minimax procedure}
 \usage{
-minimax(scores_matrix)
+minimax(scores)
 }
 \arguments{
-\item{scores_matrix}{voters scores}
+\item{scores}{voters scores}
 }
 \value{
 winner

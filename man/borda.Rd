@@ -4,10 +4,10 @@
 \alias{borda}
 \title{Borda method}
 \usage{
-borda(situation)
+borda(scores)
 }
 \arguments{
-\item{situation}{voters preferences}
+\item{scores}{voters scores}
 }
 \value{
 winner
