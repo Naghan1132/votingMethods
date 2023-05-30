@@ -39,7 +39,7 @@
   n_voters <- ncol(scores)
   # Initialiser le vecteur de voix pour chaque candidat
   vote_counts <- table(rownames(scores)[apply(scores, 2, which.is.max)])
-  print(vote_counts)
+  #print(vote_counts)
   winner <- names(vote_counts)[which.is.max(vote_counts)]
   if(n_round == 2) {
     # Vote uninominal à deux tours
@@ -62,9 +62,9 @@ successif_elimination <- function(scores, first_it = TRUE) {
   if(first_it){
     scores <- scores_to_preferences(scores)
   }
-  print(scores)
+  #print(scores)
   table <- table(rownames(scores)[apply(scores, 2, which.min)])
-  print(table)
+  #print(table)
   if(length(table) <= 2){
     return(names(table)[which.is.max(table)])
   }else{
@@ -83,7 +83,7 @@ borda <- function(scores) {
   points <- scores_to_borda_points(scores)
   # Calculer le total de chaque ligne
   totals <- rowSums(points)
-  print(totals)
+  #print(totals)
   # Retourner tous les indices des lignes ayant un total maximal
   winner <- rownames(points)[which.is.max(totals)]
   return(winner)
@@ -145,7 +145,7 @@ copeland <- function(scores) {
   }
   # retourner deux valeurs, True / false si vainqueur de condorcet
   # copeland s'occupe de me dire si il y a vainqueur ou non de condorcet
-  print(votes)
+  #print(votes)
   winner <- names(votes)[which.is.max(votes)]
   return(winner)
 }
@@ -158,7 +158,7 @@ copeland <- function(scores) {
 minimax <- function(scores) {
   preferences <- scores_to_preferences(scores)
   duel_matrix <- make_duel_matrix(preferences)
-  print(duel_matrix)
+  #print(duel_matrix)
   condorcet_winner <- condorcet_winner(duel_matrix)
   if(!is.null(condorcet_winner)){
     return(condorcet_winner)
@@ -185,7 +185,7 @@ bucklin <- function(scores) {
     candidate_votes <- sapply(1:nrow(preferences), function(i) {
       candidate_votes[i] + sum(preferences[i, ] == n_round)
     })
-    print(candidate_votes)
+    #print(candidate_votes)
     someone_has_majority <- length(which(candidate_votes > majority_threshold) > 0)
     if (someone_has_majority) {
       winner <- names(candidate_votes)[which.is.max(candidate_votes)] # random between max vote if draw
@@ -204,7 +204,7 @@ nanson <- function(scores,first_it = TRUE) {
     scores <- scores_to_borda_points(scores)
   }
   candidate_votes <- rowSums(scores)
-  print(candidate_votes)
+  #print(candidate_votes)
   mean <- sum(candidate_votes/length(candidate_votes))
   loosers <- names(candidate_votes)[candidate_votes < mean]
   if((length(candidate_votes)-length(loosers) == 1) | (length(unique(candidate_votes)) == 1)){
@@ -225,7 +225,7 @@ nanson <- function(scores,first_it = TRUE) {
 #' @returns winner
 range_voting <- function(scores) {
   mean <- apply(scores,1,mean)
-  print(mean)
+  #print(mean)
   winner <- names(mean)[which.is.max(mean)]
   return(winner)
 }
@@ -350,7 +350,7 @@ approval <- function(scores, mode = "fixe") {
     # approbation pour tout ceux dont la préférences > 0.5
     candidate_votes <- apply(scores, 1, function(x) sum(x > 0.5))
   }
-  print(candidate_votes)
+  #print(candidate_votes)
   # Retourne le candidat ayant obtenu le plus grand nombre d'approbations
   winner <- names(candidate_votes)[which.is.max(candidate_votes)]
   return(winner)
