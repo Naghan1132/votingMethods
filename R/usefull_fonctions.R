@@ -77,4 +77,3 @@ ligne_min <- function(row, indice_ligne) {
 
 
 
-

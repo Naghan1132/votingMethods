@@ -19,7 +19,7 @@
 # ==== Vote par évaluation ====
 # Vote à la moyenne / Range Voting - OK
 # Jugement Majoritaire - À VOIR PLUS TARD
-# Approbation
+# Approbation - a revoir peut-être
 
 
 # ==== ==== ==== ==== ==== ==== ==== ==== ==== ====
@@ -32,7 +32,7 @@
 #' @param n_round int
 #' @import nnet
 #' @returns winner
-uninominal <- function(scores, n_round = 1) {
+  uninominal <- function(scores, n_round = 1) {
   if(!(n_round == 1 | n_round == 2)){
     stop("Number of rounds must be 1 or 2")
   }
@@ -131,6 +131,7 @@ copeland <- function(scores) {
   votes <- setNames(rep(0, n_candidates), rownames(preferences))
   for (i in 1:(n_candidates - 1)) {
     for (j in (i + 1):n_candidates) {
+      # mettre un test => si nb duel gagnés >  n_voter et donc retourner => baisser temps de calcul
       wins_i <- sum(preferences[i,] < preferences[j,])
       if (wins_i == n_voters/2) {
         votes[i] <- votes[i] + 0.5 # draw
@@ -142,6 +143,8 @@ copeland <- function(scores) {
       }
     }
   }
+  # retourner deux valeurs, True / false si vainqueur de condorcet
+  # copeland s'occupe de me dire si il y a vainqueur ou non de condorcet
   print(votes)
   winner <- names(votes)[which.is.max(votes)]
   return(winner)
