@@ -129,10 +129,15 @@ copeland <- function(scores) {
   n_voters <- ncol(scores)
   preferences <- scores_to_preferences(scores)
   votes <- setNames(rep(0, n_candidates), rownames(preferences))
+  duel_matrix <- matrix(0, n_candidates,n_candidates) # pour la matrice de condorcet
+  colnames(duel_matrix) <- rownames(preferences)
+  rownames(duel_matrix) <- rownames(preferences)
   for (i in 1:(n_candidates - 1)) {
     for (j in (i + 1):n_candidates) {
       # mettre un test => si nb duel gagnés >  n_voter et donc retourner => baisser temps de calcul
       wins_i <- sum(preferences[i,] < preferences[j,])
+      duel_matrix[i,j] <- wins_i
+      duel_matrix[j,i] <- n_voters - wins_i
       if (wins_i == n_voters/2) {
         votes[i] <- votes[i] + 0.5 # draw
         votes[j] <- votes[j] + 0.5
@@ -143,11 +148,14 @@ copeland <- function(scores) {
       }
     }
   }
-  # retourner deux valeurs, True / false si vainqueur de condorcet
-  # copeland s'occupe de me dire si il y a vainqueur ou non de condorcet
-  #print(votes)
-  winner <- names(votes)[which.is.max(votes)]
-  return(winner)
+  condorcet <- rownames(duel_matrix)[which(sapply(1:nrow(duel_matrix), function(i) ligne_sup(duel_matrix[i, ], i,n_voters/2)))]
+  if(length(condorcet) == 0){
+    condorcet <- "None"
+  }
+  copeland <- names(votes)[which.is.max(votes)]
+
+  return_list <- list("copeland" = copeland, "condorcet" = condorcet)
+  return(return_list)
 }
 
 

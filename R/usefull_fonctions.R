@@ -57,6 +57,16 @@ make_duel_matrix <- function(scores) {
   return(duel_matrix)
 }
 
+
+check_condorcet_winner <- function(duel_matrix,n_voters){
+  # Appliquer la fonction personnalisée sur chaque ligne de la matrice
+  resultat <- rownames(duel_matrix)[which(sapply(1:nrow(duel_matrix), function(i) ligne_sup(duel_matrix[i, ], i,n_voters/2)))]
+  if(length(resultat) == 0){
+    return("None")
+  }
+  return(resultat)
+}
+
 ligne_sup <- function(row, indice_ligne,majority) {
   indices <- seq_along(row)
   indices <- indices[indices != indice_ligne]
@@ -74,6 +84,8 @@ ligne_min <- function(row, indice_ligne) {
   indices <- indices[indices != indice_ligne]
   min(row[indices])
 }
+
+
 
 
 
