@@ -10,7 +10,7 @@ copeland(scores)
 \item{scores}{voters scores}
 }
 \value{
-winner
+Copeland Winner & Condorcet Winner
 }
 \description{
 Copeland procedure

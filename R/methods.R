@@ -1,9 +1,3 @@
-# USE :
-#   library(devtools)
-#   install_github("Naghan1132/voteSim")
-#   library(voteSim)
-#   uninominal_vote(generate_beta(10,3))
-
 # ==== Vote ordre de préférences ====
 # Condorcet winner - OK
 # Condorcet looser - OK
@@ -123,7 +117,7 @@ condorcet_looser <- function(scores){
 #' Copeland procedure
 #' @export
 #' @param scores voters scores
-#' @return winner
+#' @return Copeland Winner & Condorcet Winner
 copeland <- function(scores) {
   n_candidates <- nrow(scores)
   n_voters <- ncol(scores)
@@ -134,8 +128,8 @@ copeland <- function(scores) {
   rownames(duel_matrix) <- rownames(preferences)
   for (i in 1:(n_candidates - 1)) {
     for (j in (i + 1):n_candidates) {
-      # mettre un test => si nb duel gagnés >  n_voter et donc retourner => baisser temps de calcul
       wins_i <- sum(preferences[i,] < preferences[j,])
+      #  mettre un test => si nb duel gagnés > n_voter/2 => fin boucle => baisser temps de calcul
       duel_matrix[i,j] <- wins_i
       duel_matrix[j,i] <- n_voters - wins_i
       if (wins_i == n_voters/2) {
@@ -148,6 +142,7 @@ copeland <- function(scores) {
       }
     }
   }
+
   condorcet <- rownames(duel_matrix)[which(sapply(1:nrow(duel_matrix), function(i) ligne_sup(duel_matrix[i, ], i,n_voters/2)))]
   if(length(condorcet) == 0){
     condorcet <- "None"
@@ -233,7 +228,6 @@ nanson <- function(scores,first_it = TRUE) {
 #' @returns winner
 range_voting <- function(scores) {
   mean <- apply(scores,1,mean)
-  #print(mean)
   winner <- names(mean)[which.is.max(mean)]
   return(winner)
 }
@@ -243,7 +237,6 @@ range_voting <- function(scores) {
 #' @param situation voters preferences
 #' @returns winner
 majority_jugement <- function(situation) {
-  #set.seed(2023)
   #  À rejeter, Insuffisant, Passable, Assez Bien,  Bien,   Très Bien,  Excellent
   #     < 0        < 2        < 4        < 6         < 7       < 8         9
   #   1 point   2 points    3 points   4 points    5 points  6 points   7 points
@@ -300,11 +293,16 @@ majority_jugement <- function(situation) {
         max_notes <- current_notes
         max_vote_count <- current_vote_count
         indice_max <- i
+      }else if(current_vote_count == max_vote_count){
+        # si égalité parfaite => prendre random entre les max candidat
+        random_candidate <- sample(c(indice_max,i), size = 1)
+        indice_max <- random_candidate
       }
     }
   }
-  #print(indice_max)
-  #print(max_vote_count)
+  # print(res_votes)
+  # print(indice_max)
+  # print(max_vote_count)
   winner <- rownames(situation)[indice_max]
   return(winner)
 }
@@ -318,7 +316,7 @@ library("utils")
 #' @import stats
 #' @import utils
 #' @returns winner
-approval <- function(scores, mode = "fixe") {
+approval <- function(scores, mode = "poisson") {
   n_candidate <- nrow(scores)
   n_voter <- ncol(scores)
   candidate_votes <- setNames(rep(0, n_candidate), rownames(scores))
@@ -333,32 +331,24 @@ approval <- function(scores, mode = "fixe") {
     }else{
       n_appro <- round(n_candidate/2 - 2)
     }
-    # apply(tail(order(situation)),2,function(col){
-    #   print(col)
-    # })
-    # apply(situation, 2, function(x) {
-    #   indices_lignes <- tail(order(x), n_appro)
-    #   candidate_votes[indices_lignes] <- candidate_votes[indices_lignes] + 1
-    # })
     for(i in 1:n_voter){
       indices_lignes <- tail(order(scores[,i]), n_appro)
       candidate_votes[indices_lignes] <- candidate_votes[indices_lignes] + 1
     }
   }else if(mode == "poisson"){
+    #set.seed(2023) # à mettre pour la simu finale
     lambda <- n_candidate/2 # moyenne & variance de la loi
     poisson_values <- rpois(n_voter, lambda)
     bounded_poisson_values <- pmax(pmin(poisson_values, n_candidate - 1), 1) # n_appro de 1 à length(n_candidat-1)
-    print(bounded_poisson_values)
-    hist(bounded_poisson_values)
+    #print(bounded_poisson_values)
+    #hist(bounded_poisson_values)
     for(i in 1:n_voter){
       indices_lignes <- tail(order(scores[,i]), bounded_poisson_values[i])
       candidate_votes[indices_lignes] <- candidate_votes[indices_lignes] + 1
     }
   }else{
-    # approbation pour tout ceux dont la préférences > 0.5
     candidate_votes <- apply(scores, 1, function(x) sum(x > 0.5))
   }
-  #print(candidate_votes)
   # Retourne le candidat ayant obtenu le plus grand nombre d'approbations
   winner <- names(candidate_votes)[which.is.max(candidate_votes)]
   return(winner)
