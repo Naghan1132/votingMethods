@@ -245,7 +245,6 @@ majority_jugement <- function(situation) {
   n_voter <- ncol(situation)
 
   medianne <- ifelse(n_voter %% 2 == 0, n_voter/2, (n_voter+1)/2)
-  #print(medianne)
 
   seuils <- c(0,2,4,6,7,8,9)
   notes <- rep(1:7,1)
@@ -273,7 +272,6 @@ majority_jugement <- function(situation) {
       cpt <- cpt + 1
     }
   }
-  #print(res_votes)
   max_notes <- -Inf  # Valeur minimale initiale pour les notes
   max_vote_count <- -Inf  # Valeur minimale initiale pour les votes
   indice_max <- NULL
