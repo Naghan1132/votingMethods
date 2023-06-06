@@ -8,6 +8,8 @@ nanson(scores, first_it = TRUE)
 }
 \arguments{
 \item{scores}{voters scores}
+
+\item{first_it}{dd}
 }
 \value{
 winner

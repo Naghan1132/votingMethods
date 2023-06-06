@@ -33,7 +33,6 @@
   n_voters <- ncol(scores)
   # Initialiser le vecteur de voix pour chaque candidat
   vote_counts <- table(rownames(scores)[apply(scores, 2, which.is.max)])
-  #print(vote_counts)
   winner <- names(vote_counts)[which.is.max(vote_counts)]
   if(n_round == 2) {
     # Vote uninominal à deux tours
@@ -56,14 +55,17 @@ successif_elimination <- function(scores, first_it = TRUE) {
   if(first_it){
     scores <- scores_to_preferences(scores)
   }
-  #print(scores)
   table <- table(rownames(scores)[apply(scores, 2, which.min)])
-  #print(table)
+  missing_rownames <- setdiff(rownames(scores),rownames(table))
+  if(length(missing_rownames) > 0){
+    table[missing_rownames] <- 0 # si un candidat n'est jamais le pref, alors on l'ajoute à la main dans la table
+  }
   if(length(table) <= 2){
     return(names(table)[which.is.max(table)])
   }else{
-    looser <- names(table)[which.min(table)]
-    scores <- scores[names(table) != looser, ]
+    looser <- names(which.min(table))
+    print(looser)
+    scores <- subset(scores, rownames(scores) != looser)
     return(successif_elimination(scores,FALSE))
   }
 }
@@ -201,6 +203,7 @@ bucklin <- function(scores) {
 #' Nanson method
 #' @export
 #' @param scores voters scores
+#' @param first_it dd
 #' @returns winner
 nanson <- function(scores,first_it = TRUE) {
   if(first_it){
