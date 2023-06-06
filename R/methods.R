@@ -64,7 +64,6 @@ successif_elimination <- function(scores, first_it = TRUE) {
     return(names(table)[which.is.max(table)])
   }else{
     looser <- names(which.min(table))
-    print(looser)
     scores <- subset(scores, rownames(scores) != looser)
     return(successif_elimination(scores,FALSE))
   }
@@ -77,6 +76,7 @@ successif_elimination <- function(scores, first_it = TRUE) {
 #' @export
 borda <- function(scores) {
   points <- scores_to_borda_points(scores)
+  #print(points)
   # Calculer le total de chaque ligne
   totals <- rowSums(points)
   #print(totals)
@@ -124,6 +124,7 @@ copeland <- function(scores) {
   n_candidates <- nrow(scores)
   n_voters <- ncol(scores)
   preferences <- scores_to_preferences(scores)
+  #print(preferences)
   votes <- setNames(rep(0, n_candidates), rownames(preferences))
   duel_matrix <- matrix(0, n_candidates,n_candidates) # pour la matrice de condorcet
   colnames(duel_matrix) <- rownames(preferences)
@@ -144,7 +145,7 @@ copeland <- function(scores) {
       }
     }
   }
-
+  #print(votes)
   condorcet <- rownames(duel_matrix)[which(sapply(1:nrow(duel_matrix), function(i) ligne_sup(duel_matrix[i, ], i,n_voters/2)))]
   if(length(condorcet) == 0){
     condorcet <- "None"
@@ -162,6 +163,7 @@ copeland <- function(scores) {
 #' @return winner
 minimax <- function(scores) {
   preferences <- scores_to_preferences(scores)
+  #print(preferences)
   duel_matrix <- make_duel_matrix(preferences)
   #print(duel_matrix)
   condorcet_winner <- condorcet_winner(duel_matrix)
@@ -170,6 +172,7 @@ minimax <- function(scores) {
   }
   else{# sinon le moins pire des valeurs (minimum de chaque ligne, hors diagonale)
     resultat <- sapply(1:nrow(duel_matrix), function(i) ligne_min(duel_matrix[i, ], i))
+    #print(resultat)
     winner <- rownames(duel_matrix)[which.is.max(resultat)]
     return(winner)
   }
