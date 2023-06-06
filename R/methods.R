@@ -162,17 +162,15 @@ copeland <- function(scores) {
 #' @param scores voters scores
 #' @return winner
 minimax <- function(scores) {
-  preferences <- scores_to_preferences(scores)
-  #print(preferences)
-  duel_matrix <- make_duel_matrix(preferences)
-  #print(duel_matrix)
-  condorcet_winner <- condorcet_winner(duel_matrix)
+  condorcet_winner <- condorcet_winner(scores)
   if(!is.null(condorcet_winner)){
     return(condorcet_winner)
   }
   else{# sinon le moins pire des valeurs (minimum de chaque ligne, hors diagonale)
+    duel_matrix <- make_duel_matrix(scores)
+    print(duel_matrix)
     resultat <- sapply(1:nrow(duel_matrix), function(i) ligne_min(duel_matrix[i, ], i))
-    #print(resultat)
+    print(resultat)
     winner <- rownames(duel_matrix)[which.is.max(resultat)]
     return(winner)
   }
