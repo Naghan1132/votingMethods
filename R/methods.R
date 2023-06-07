@@ -76,10 +76,8 @@ successif_elimination <- function(scores, first_it = TRUE) {
 #' @export
 borda <- function(scores) {
   points <- scores_to_borda_points(scores)
-  #print(points)
   # Calculer le total de chaque ligne
   totals <- rowSums(points)
-  #print(totals)
   # Retourner tous les indices des lignes ayant un total maximal
   winner <- rownames(points)[which.is.max(totals)]
   return(winner)
@@ -306,9 +304,6 @@ majority_jugement <- function(situation) {
       }
     }
   }
-  # print(res_votes)
-  # print(indice_max)
-  # print(max_vote_count)
   winner <- rownames(situation)[indice_max]
   return(winner)
 }
@@ -346,8 +341,6 @@ approval <- function(scores, mode = "poisson") {
     lambda <- n_candidate/2 # moyenne & variance de la loi
     poisson_values <- rpois(n_voter, lambda)
     bounded_poisson_values <- pmax(pmin(poisson_values, n_candidate - 1), 1) # n_appro de 1 à length(n_candidat-1)
-    #print(bounded_poisson_values)
-    #hist(bounded_poisson_values)
     for(i in 1:n_voter){
       indices_lignes <- tail(order(scores[,i]), bounded_poisson_values[i])
       candidate_votes[indices_lignes] <- candidate_votes[indices_lignes] + 1

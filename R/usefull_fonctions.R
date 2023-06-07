@@ -40,7 +40,6 @@ make_duel_matrix <- function(scores) {
   n_candidates <- nrow(scores)
   n_voters <- ncol(scores)
   preferences <- scores_to_preferences(scores)
-  #print(preferences)
   # Calcule la matrice des duels :
   duel_matrix <- matrix(0, n_candidates,n_candidates)
   candidates_names <- rownames(preferences)
