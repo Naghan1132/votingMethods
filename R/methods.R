@@ -36,7 +36,7 @@
   winner <- names(vote_counts)[which.is.max(vote_counts)]
   if(n_round == 2) {
     # Vote uninominal à deux tours
-    if(max(vote_counts) / n_voters < 0.5) {
+    if((max(vote_counts) / n_voters) < 0.5) {
       # Si aucun candidat n'a la majorité absolue, on passe au second tour
       top2_indices <- names(vote_counts)[order(vote_counts, decreasing = TRUE)[1:2]]
       scores2 <- scores[top2_indices,]
@@ -183,14 +183,13 @@ bucklin <- function(scores) {
   candidate_votes <- setNames(rep(0, nrow(preferences)), rownames(preferences))
   winner <- NULL
   n_round <- 1
-  majority_threshold <- ceiling(ncol(preferences) / 2)
+  majority_threshold <- ceiling(ncol(preferences) / 2) + ifelse(ncol(preferences) %% 2 == 1, 0, 1)
   while(is.null(winner)) {
     # Compter le nombre de votes pour chaque candidat
     candidate_votes <- sapply(1:nrow(preferences), function(i) {
       candidate_votes[i] + sum(preferences[i, ] == n_round)
     })
-    #print(candidate_votes)
-    someone_has_majority <- length(which(candidate_votes > majority_threshold) > 0)
+    someone_has_majority <- length(which(candidate_votes >= majority_threshold) > 0)
     if (someone_has_majority) {
       winner <- names(candidate_votes)[which.is.max(candidate_votes)] # random between max vote if draw
       return(winner)
