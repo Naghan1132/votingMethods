@@ -231,6 +231,16 @@ range_voting <- function(scores) {
   return(winner)
 }
 
+#' JM (median)
+#' @export
+#' @param scores voters scores
+#' @returns winner
+JM <- function(scores) {
+  median <- apply(scores,1,median)
+  winner <- names(median)[which.is.max(median)]
+  return(winner)
+}
+
 #' Majority Jugement (Balinski) mediane
 #' @export
 #' @param situation voters preferences
