@@ -134,7 +134,6 @@ copeland <- function(scores) {
       wins_i <- sum(preferences[i,] < preferences[j,])
       duel_matrix[i,j] <- wins_i
       duel_matrix[j,i] <- n_voters - wins_i
-      print(wins_i)
       if (wins_i == n_voters/2) {
         votes[i] <- votes[i] + 0.5 # draw
         votes[j] <- votes[j] + 0.5
