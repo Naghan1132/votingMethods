@@ -124,28 +124,27 @@ copeland <- function(scores) {
   n_candidates <- nrow(scores)
   n_voters <- ncol(scores)
   preferences <- scores_to_preferences(scores)
-  #print(preferences)
   votes <- setNames(rep(0, n_candidates), rownames(preferences))
-  duel_matrix <- matrix(0, n_candidates,n_candidates) # pour la matrice de condorcet
+  duel_matrix <- matrix(0, n_candidates,n_candidates) # condorcet matrix
   colnames(duel_matrix) <- rownames(preferences)
   rownames(duel_matrix) <- rownames(preferences)
+  majority_threshold <- ceiling(n_voters / 2) + ifelse(n_voters %% 2 == 1, 0, 1)
   for (i in 1:(n_candidates - 1)) {
     for (j in (i + 1):n_candidates) {
       wins_i <- sum(preferences[i,] < preferences[j,])
-      #  mettre un test => si nb duel gagnés > n_voter/2 => fin boucle => baisser temps de calcul
       duel_matrix[i,j] <- wins_i
       duel_matrix[j,i] <- n_voters - wins_i
+      print(wins_i)
       if (wins_i == n_voters/2) {
         votes[i] <- votes[i] + 0.5 # draw
         votes[j] <- votes[j] + 0.5
-      } else if (wins_i > n_voters/2) {
+      } else if (wins_i >= majority_threshold) {
         votes[i] <- votes[i] + 1 # i win
       } else {
         votes[j] <- votes[j] + 1 # j win
       }
     }
   }
-  #print(votes)
   condorcet <- rownames(duel_matrix)[which(sapply(1:nrow(duel_matrix), function(i) ligne_sup(duel_matrix[i, ], i,n_voters/2)))]
   if(length(condorcet) == 0){
     condorcet <- "None"
@@ -201,19 +200,18 @@ bucklin <- function(scores) {
 #' Nanson method
 #' @export
 #' @param scores voters scores
-#' @param first_it dd
+#' @param first_it first iteration
 #' @returns winner
 nanson <- function(scores,first_it = TRUE) {
   if(first_it){
     scores <- scores_to_borda_points(scores)
   }
   candidate_votes <- rowSums(scores)
-  #print(candidate_votes)
   mean <- sum(candidate_votes/length(candidate_votes))
   loosers <- names(candidate_votes)[candidate_votes < mean]
   if((length(candidate_votes)-length(loosers) == 1) | (length(unique(candidate_votes)) == 1)){
     winner <- names(candidate_votes)[which.is.max(candidate_votes)]
-    return(winner) # win / draw (random winner)
+    return(winner) # win / draw (draw => random winner)
   }else{
     # Éliminations -> récursivité :
     scores <- rearrange_points(scores,loosers)

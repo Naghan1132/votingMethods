@@ -9,7 +9,7 @@ nanson(scores, first_it = TRUE)
 \arguments{
 \item{scores}{voters scores}
 
-\item{first_it}{dd}
+\item{first_it}{first iteration}
 }
 \value{
 winner
