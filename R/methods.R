@@ -9,6 +9,9 @@
 # Nanson - OK
 # Minimax - OK
 # Copeland - OK
+# Anti Plularity - OK
+# Star -
+# Inf - OK
 
 # ==== Vote par évaluation ====
 # Vote à la moyenne / Range Voting - OK
