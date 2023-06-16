@@ -252,11 +252,11 @@ star <- function(scores) {
   return(jm)
 }
 
-#' inf
+#' infinity
 #' @export
 #' @param scores voters scores
 #' @returns winner
-inf <- function(scores) {
+infinity <- function(scores) {
   mean_min_max <- apply(scores, 1, function(row) mean(c(min(row), max(row))))
   winner <- names(mean_min_max)[which.is.max(mean_min_max)]
   return(winner)
