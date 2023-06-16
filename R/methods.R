@@ -12,8 +12,8 @@
 
 # ==== Vote par évaluation ====
 # Vote à la moyenne / Range Voting - OK
-# Jugement Majoritaire - À VOIR PLUS TARD
-# Approbation - a revoir peut-être
+# Jugement Majoritaire -
+# Approbation - OK
 
 
 # ==== ==== ==== ==== ==== ==== ==== ==== ==== ====
@@ -183,7 +183,7 @@ bucklin <- function(scores) {
   while(is.null(winner)) {
     # Compter le nombre de votes pour chaque candidat
     candidate_votes <- sapply(1:nrow(preferences), function(i) {
-      candidate_votes[i] + sum(preferences[i, ] == n_round)
+      candidate_votes[i] + sum(preferences[i, ] <= n_round)
     })
     someone_has_majority <- length(which(candidate_votes >= majority_threshold) > 0)
     if (someone_has_majority) {
@@ -216,6 +216,48 @@ nanson <- function(scores,first_it = TRUE) {
   }
 }
 
+#' anti plularity,each voter votes against a single candidate, and the candidate with the fewest votes against wins
+#' @export
+#' @param scores voters scores
+#' @returns winner
+anti_plularity <- function(scores) {
+  vote_counts <- table(rownames(scores)[apply(scores, 2, which.min)])
+  missing_rownames <- setdiff(rownames(scores),rownames(vote_counts))
+  if(length(missing_rownames) > 0){
+    vote_counts[missing_rownames] <- 0 # si un candidat n'est jamais le pire, alors on l'ajoute à la main dans la table
+  }
+  indices_min <- which(vote_counts == min(vote_counts))
+  # test égalité :
+  if(length(indices_min) > 1){
+    indice_aleatoire <- sample(indices_min, 1)
+    winner <- names(vote_counts)[indice_aleatoire]
+  }else{
+    winner <- names(vote_counts)[indices_min]
+  }
+  return(winner)
+}
+
+
+#' star, 2 meilleures moyenne et on regarde le JM sur les 2
+#' @export
+#' @param scores voters scores
+#' @returns winner
+star <- function(scores) {
+  mean <- apply(scores,1,mean)
+  top2_indices <- names(mean)[order(mean, decreasing = TRUE)[1:2]]
+  jm <- JM(scores[top2_indices,])
+  return(jm)
+}
+
+#' inf
+#' @export
+#' @param scores voters scores
+#' @returns winner
+inf <- function(scores) {
+  mean_min_max <- apply(scores, 1, function(row) mean(c(min(row), max(row))))
+  winner <- names(mean_min_max)[which.is.max(mean_min_max)]
+  return(winner)
+}
 # ==== VOTE PAR ÉVALUATION ====
 
 #' Range voting (vote à la moyenne)
