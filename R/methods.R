@@ -10,7 +10,7 @@
 # Minimax - OK
 # Copeland - OK
 # Anti Plularity - OK
-# Star -
+# Star - OK
 # Inf - OK
 
 # ==== Vote par évaluation ====
@@ -29,7 +29,7 @@
 #' @param n_round int
 #' @import nnet
 #' @returns winner
-  uninominal <- function(scores, n_round = 1) {
+uninominal <- function(scores, n_round = 1) {
   if(!(n_round == 1 | n_round == 2)){
     stop("Number of rounds must be 1 or 2")
   }
@@ -248,8 +248,8 @@ anti_plularity <- function(scores) {
 star <- function(scores) {
   mean <- apply(scores,1,mean)
   top2_indices <- names(mean)[order(mean, decreasing = TRUE)[1:2]]
-  jm <- JM(scores[top2_indices,])
-  return(jm)
+  winner <- uninominal(scores[top2_indices,])
+  return(winner)
 }
 
 #' infinity
@@ -362,21 +362,13 @@ library("utils")
 #' @import stats
 #' @import utils
 #' @returns winner
-approval <- function(scores, mode = "poisson") {
+approval <- function(scores, mode = "autre") {
   n_candidate <- nrow(scores)
   n_voter <- ncol(scores)
   candidate_votes <- setNames(rep(0, n_candidate), rownames(scores))
   # Calcule le nombre d'approbations pour chaque candidat
   if(mode == "fixe"){
-    if(n_candidate == 2){
-      n_appro <- 1
-    }else if(n_candidate < 5){
-      n_appro <- round(n_candidate/2)
-    }else if(n_candidate < 10){
-      n_appro <- round(n_candidate/2 -1)
-    }else{
-      n_appro <- round(n_candidate/2 - 2)
-    }
+    n_appro <- resultat <- (n_candidate - (n_candidate %% 2)) / 2
     for(i in 1:n_voter){
       indices_lignes <- tail(order(scores[,i]), n_appro)
       candidate_votes[indices_lignes] <- candidate_votes[indices_lignes] + 1
@@ -391,7 +383,20 @@ approval <- function(scores, mode = "poisson") {
       candidate_votes[indices_lignes] <- candidate_votes[indices_lignes] + 1
     }
   }else{
-    candidate_votes <- apply(scores, 1, function(x) sum(x > 0.5))
+    for (j in 1:n_voter) {
+      column <- scores[, j]
+      if(length(candidate_votes[column > 0.7]) == n_candidate){
+        # tous  > 0.7 =>  enlever le pire vote
+        min_score_index <- which.min(column)
+        candidate_votes[-min_score_index] <- candidate_votes[-min_score_index] + 1
+      } else if (any(column > 0.7)) {
+        candidate_votes[column > 0.7] <- candidate_votes[column > 0.7] + 1
+      } else {
+        # aucun candidats > 0.7 => on ajoute +1 au meilleur
+        max_score_index <- which.is.max(column)
+        candidate_votes[max_score_index] <- candidate_votes[max_score_index] + 1
+      }
+    }
   }
   # Retourne le candidat ayant obtenu le plus grand nombre d'approbations
   winner <- names(candidate_votes)[which.is.max(candidate_votes)]
