@@ -56,7 +56,7 @@ uninominal <- function(scores, n_round = 1) {
 #' @returns remaining_candidates
 successif_elimination <- function(scores, first_it = TRUE) {
   if(first_it){
-    scores <- scores_to_preferences(scores)
+      scores <- scores_to_preferences(scores)
   }
   table <- table(rownames(scores)[apply(scores, 2, which.min)])
   missing_rownames <- setdiff(rownames(scores),rownames(table))

@@ -4,7 +4,7 @@
 \alias{approval}
 \title{Approval vote}
 \usage{
-approval(scores, mode = "poisson")
+approval(scores, mode = "autre")
 }
 \arguments{
 \item{scores}{voters scores}
