@@ -2,7 +2,7 @@
 % Please edit documentation in R/methods.R
 \name{star}
 \alias{star}
-\title{star, 2 meilleures moyenne et on regarde le JM sur les 2}
+\title{star, 2 meilleures moyenne et on regarde le résultat d'un vote uninominal sur les 2}
 \usage{
 star(scores)
 }
@@ -13,5 +13,5 @@ star(scores)
 winner
 }
 \description{
-star, 2 meilleures moyenne et on regarde le JM sur les 2
+star, 2 meilleures moyenne et on regarde le résultat d'un vote uninominal sur les 2
 }

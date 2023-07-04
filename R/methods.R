@@ -241,7 +241,7 @@ anti_plularity <- function(scores) {
 }
 
 
-#' star, 2 meilleures moyenne et on regarde le JM sur les 2
+#' star, 2 meilleures moyenne et on regarde le résultat d'un vote uninominal sur les 2
 #' @export
 #' @param scores voters scores
 #' @returns winner
