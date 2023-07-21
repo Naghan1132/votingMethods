@@ -1,4 +1,3 @@
-# ==== Vote ordre de préférences ====
 # Condorcet winner - OK
 # Condorcet looser - OK
 # Uninomial 1T - OK
@@ -12,10 +11,8 @@
 # Anti Plularity - OK
 # Star - OK
 # Inf - OK
-
-# ==== Vote par évaluation ====
 # Vote à la moyenne / Range Voting - OK
-# Jugement Majoritaire -
+# Jugement Majoritaire - OK
 # Approbation - OK
 
 
@@ -241,7 +238,7 @@ anti_plularity <- function(scores) {
 }
 
 
-#' star, 2 meilleures moyenne et on regarde le résultat d'un vote uninominal sur les 2
+#' Star, 2 meilleures moyenne et on regarde le résultat d'un vote uninominal sur les 2
 #' @export
 #' @param scores voters scores
 #' @returns winner
@@ -252,7 +249,7 @@ star <- function(scores) {
   return(winner)
 }
 
-#' infinity
+#' Infinity
 #' @export
 #' @param scores voters scores
 #' @returns winner
@@ -261,7 +258,6 @@ infinity <- function(scores) {
   winner <- names(mean_min_max)[which.is.max(mean_min_max)]
   return(winner)
 }
-# ==== VOTE PAR ÉVALUATION ====
 
 #' Range voting (vote à la moyenne)
 #' @export
@@ -280,76 +276,6 @@ range_voting <- function(scores) {
 JM <- function(scores) {
   median <- apply(scores,1,median)
   winner <- names(median)[which.is.max(median)]
-  return(winner)
-}
-
-#' Majority Jugement (Balinski) mediane
-#' @export
-#' @param situation voters preferences
-#' @returns winner
-majority_jugement <- function(situation) {
-  #  À rejeter, Insuffisant, Passable, Assez Bien,  Bien,   Très Bien,  Excellent
-  #     < 0        < 2        < 4        < 6         < 7       < 8         9
-  #   1 point   2 points    3 points   4 points    5 points  6 points   7 points
-
-  n_candidate <- nrow(situation)
-  n_voter <- ncol(situation)
-
-  medianne <- ifelse(n_voter %% 2 == 0, n_voter/2, (n_voter+1)/2)
-
-  seuils <- c(0,2,4,6,7,8,9)
-  notes <- rep(1:7,1)
-  candidate_votes <- lapply(1:n_candidate, function(x) rep(0,length(notes)))
-
-  # Attribution des évaluations
-  for (i in 1:n_candidate){
-    for(j in 1:n_voter){
-      seuil <- tail(seuils[seuils <= 10*situation[i,j]],1) # 10* car préfs entre 0 et 1
-      indice_seuil <- which(seuils == seuil)
-      candidate_votes[[i]][[indice_seuil]] <- candidate_votes[[i]][[indice_seuil]] + 1
-    }
-  }
-  # Comptage des votes
-  res_votes <- list()
-  for (i in 1:n_candidate){
-    cpt <- 1
-    vote_count <-0
-    for(j in candidate_votes[[i]]){
-      vote_count <- vote_count + j
-      if(vote_count >= medianne){
-        res_votes[[i]] <- c(notes[cpt],vote_count)
-        break
-      }
-      cpt <- cpt + 1
-    }
-  }
-  max_notes <- -Inf  # Valeur minimale initiale pour les notes
-  max_vote_count <- -Inf  # Valeur minimale initiale pour les votes
-  indice_max <- NULL
-  # Parcourir la liste des résultats
-  for (i in 1:length(res_votes)) {
-    # Extraire les valeurs de notes et vote_count
-    current_notes <- res_votes[[i]][1]
-    current_vote_count <- res_votes[[i]][2]
-    # Vérifier si les notes actuelles sont supérieures à la valeur maximale
-    if (current_notes > max_notes) {
-      # Mettre à jour la valeur maximale des notes et vote_count
-      max_notes <- current_notes
-      max_vote_count <- current_vote_count
-      indice_max <- i
-    }else if(current_notes == max_notes){
-      if(current_vote_count > max_vote_count){
-        max_notes <- current_notes
-        max_vote_count <- current_vote_count
-        indice_max <- i
-      }else if(current_vote_count == max_vote_count){
-        # si égalité parfaite => prendre random entre les max candidat
-        random_candidate <- sample(c(indice_max,i), size = 1)
-        indice_max <- random_candidate
-      }
-    }
-  }
-  winner <- rownames(situation)[indice_max]
   return(winner)
 }
 

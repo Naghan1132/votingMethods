@@ -2,7 +2,7 @@
 % Please edit documentation in R/methods.R
 \name{infinity}
 \alias{infinity}
-\title{infinity}
+\title{Infinity}
 \usage{
 infinity(scores)
 }
@@ -13,5 +13,5 @@ infinity(scores)
 winner
 }
 \description{
-infinity
+Infinity
 }
